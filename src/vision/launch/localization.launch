@@ -1,3 +1,11 @@
+<!--
+Starts the AMCL localization stack to perform particle filter localization
+of the robot.
+
+Takes in a known map file through the argument `map_file`
+
+Outputs the inferred pose to `/amcl_pose` topic
+-->
 <launch>
   <!-- 3D sensor -->
   <arg name="3d_sensor" default="$(env TURTLEBOT_3D_SENSOR)"/>  <!-- r200, kinect, asus_xtion_pro -->
