@@ -7,14 +7,17 @@ from geometry_msgs.msg import Twist
 
 def controller(marker_num, self_num, master_num):
 	vel_control = VelocityController(marker_num, self_num, master_num)
-	pub = rospy.Publisher(vel_control.turtlebot+'/commands/velocity', Twist, queue_size=10)
+	#pub_vel_cmd = rospy.Publisher(vel_control.turtlebot+'/commands/velocity', Twist, queue_size=10)
+	pub_rel_vel = rospy.Publisher(vel_control.turtlebot+'/relative_velocity', Twist, queue_size=10)
 	rate = rospy.Rate(10) #subject to change
 
 
 	while not rospy.is_shutdown():
 		try:
 			vel_control.update_velocity()
-			#pub.publish(vel_control.cmd_vel)
+			vel_control.get_relative_velocity()
+			#pub_vel_cmd.publish(vel_control.velocity)
+			pub_rel_vel.publish(vel_control.relative_vel)
 		except Exception as e:
 			print(e)
 			pass
