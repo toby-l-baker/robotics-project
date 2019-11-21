@@ -38,7 +38,9 @@ class ControlNode:
         rospy.init_node(name, anonymous=True, disable_signals=True)
 
         self.setup_pub_sub()
+        print("Setup pub sub")
         self.load_controller()
+        print("Loaded controller")
         self.ready_event.set()
 
         rate = rospy.Rate(50)
@@ -186,7 +188,6 @@ class ControlNode:
 
     def publish_ctrl(self, ctrl):
         assert len(ctrl) == 2
-        # TODO convert [ vel, angle ] control input to turtlebot format
         ctrlmsg = Twist()
         ctrlmsg.linear.x = ctrl[0]
         ctrlmsg.angular.z = ctrl[1]

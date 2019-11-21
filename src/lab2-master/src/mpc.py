@@ -89,7 +89,7 @@ class ModelPredictiveController(BaseController):
         min_control = np.argmin(costs)
 
         # Visualize the heatmap of the cost function on each trajectory in rviz
-        viz_paths_cmap(rollouts, costs, scale=0.01)
+        #viz_paths_cmap(rollouts, costs, scale=0.01)
 
         # Return the controls which yielded the min cost.
         return self.trajs[min_control][0]
@@ -130,7 +130,7 @@ class ModelPredictiveController(BaseController):
             self.finish_threshold = float(rospy.get_param("mpc/finish_threshold", 1.0))
             self.exceed_threshold = float(rospy.get_param("mpc/exceed_threshold", 4.0))
             # Average distance from the current reference pose to lookahed.
-            self.waypoint_lookahead = float(rospy.get_param("mpc/waypoint_lookahead", 1.0))
+            self.waypoint_lookahead = float(rospy.get_param("mpc/waypoint_lookahead", 0.2))
             self.collision_w = float(rospy.get_param("mpc/collision_w", 3e5)) 
             self.error_w = float(rospy.get_param("mpc/error_w", 1.5))
 
@@ -280,12 +280,14 @@ class ModelPredictiveController(BaseController):
         output:
             map_msg - a GetMap message returned by the mapserver
         '''
+        print("Getting map")
         srv_name = rospy.get_param("static_map", default="/static_map")
         rospy.logdebug("Waiting for map service")
         rospy.wait_for_service(srv_name)
         rospy.logdebug("Map service started")
 
         map_msg = rospy.ServiceProxy(srv_name, GetMap)().map
+        print("Got map")
         return map_msg
 
     def load_permissible_region(self, map):
