@@ -96,7 +96,7 @@ class ControlNode:
         self.rp_ctrls = rospy.Publisher(
             rospy.get_param(
                 "~ctrl_topic",
-                default="/cmd_vel_mux/input/teleop"
+                default="/cmd_vel_mux/input/navi"
             ),
             Twist, queue_size=2
         )
