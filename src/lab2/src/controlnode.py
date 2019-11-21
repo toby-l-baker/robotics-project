@@ -84,9 +84,8 @@ class ControlNode:
         rospy.Service("~reset/state", SrvEmpty,  self.srv_reset_state)
         rospy.Service("~reset/params", SrvEmpty, self.srv_reset_params)
 
-        # Removing requirement to receive initial pose
-        #rospy.Subscriber("/initialpose",
-        #        PoseWithCovarianceStamped, self.cb_init_pose, queue_size=1)
+        rospy.Subscriber("/initialpose",
+                PoseWithCovarianceStamped, self.cb_init_pose, queue_size=1)
 
         rospy.Subscriber("/controller/set_path",
                 XYHVPath, self.cb_path, queue_size=1)
@@ -249,4 +248,5 @@ class ControlNode:
         self.rp_cte.publish(Float32(cte))
 
     def cb_init_pose(self, pose):
-        self.path_event.set()
+        #self.path_event.set()
+        pass
