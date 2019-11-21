@@ -57,8 +57,8 @@ class ControlNode:
                 pose = self.controller.get_reference_pose(index)
                 error = self.controller.get_error(ip, index)
                 cte = error[1]
-                print error
                 self.publish_selected_pose(pose)
+                print("Error:", error)
                 self.publish_cte(cte)
                 next_ctrl = self.controller.get_control(ip, index)
                 if next_ctrl is not None:
