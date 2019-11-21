@@ -1,0 +1,12 @@
+<launch>
+	<arg name="map_file" default="/tmp/robot_lab.yaml" />
+	<node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+
+	<param name="static_map" value="/static_map"/>
+	<node pkg="lab2" type="main.py" name="controller" output="screen">
+		<param name="type" value="MPC"/>
+		<param name="pose_topic" value="/amcl_pose"/>
+		<param name="ctrl_topic" value="/cmd_vel_mux/input/navi"/>
+	</node>
+</launch>
+

@@ -1,0 +1,8 @@
+<launch>
+	<node pkg="lab2" type="main.py" name="controller" output="screen">
+		<param name="type" value="PID"/>
+		<param name="pose_topic" value="/amcl_pose"/>
+		<param name="ctrl_topic" value="/cmd_vel_mux/input/navi"/>
+	</node>
+</launch>
+
