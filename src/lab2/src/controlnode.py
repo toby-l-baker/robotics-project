@@ -84,8 +84,10 @@ class ControlNode:
         rospy.Service("~reset/state", SrvEmpty,  self.srv_reset_state)
         rospy.Service("~reset/params", SrvEmpty, self.srv_reset_params)
 
-        rospy.Subscriber("/initialpose",
-                PoseWithCovarianceStamped, self.cb_init_pose, queue_size=1)
+        # Removing requirement to receive initial pose
+        #rospy.Subscriber("/initialpose",
+        #        PoseWithCovarianceStamped, self.cb_init_pose, queue_size=1)
+
         rospy.Subscriber("/controller/set_path",
                 XYHVPath, self.cb_path, queue_size=1)
 

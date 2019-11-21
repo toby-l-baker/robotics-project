@@ -1,4 +1,10 @@
 <launch>
+    <param name="/pid/kp", value=0.40/>
+    <param name="/pid/kd", value=0.30/>
+    <param name="/pid/finish_threshold", value=0.2/>
+    <param name="/pid/exceed_threshold", value=4.0/>
+    <param name="/pid/waypoint_lookahead", value=0.6/>
+
 	<node pkg="lab2" type="main.py" name="controller" output="screen">
 		<param name="type" value="PID"/>
 		<param name="pose_topic" value="/amcl_pose"/>
