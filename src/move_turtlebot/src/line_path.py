@@ -3,10 +3,10 @@ import tf.transformations as tft
 import numpy as np
 import actionlib
 
-from lab2.msg import XYHVPath
+from lab2.msg import XYHV, XYHVPath
 from lab2.srv import FollowPath
 from move_base_msgs.msg import MoveBaseAction, MoveBaseActionGoal
-from geometry_msgs.msg import PoseStamped, Vector3
+from geometry_msgs.msg import PoseStamped, Vector3, PoseWithCovarianceStamped
 from visualization_msgs.msg import Marker
 from std_msgs.msg import Header
 
@@ -36,12 +36,16 @@ class LinePath():
     waypoints of constant offset and count.
     """
 
-    def __init__(self, offset, count):
+    def __init__(self, offset, count, ahead):
         self.offset = offset
         self.count = count
         self.length = offset * count
+        self.ahead = ahead
+        self.got_pose = False
 
-        rviz_goal_topic = "rviz/goal"
+        pose_topic = "/amcl_pose"
+        self.sub = rospy.Subscriber(pose_topic, PoseWithCovarianceStamped, self.pose_callback)
+        rviz_goal_topic = "move_base_simple/goal"
         self.sub = rospy.Subscriber(rviz_goal_topic, PoseStamped, self.callback)
         rviz_marker_topic = "line_path/markers"
         self.marker_pub = rospy.Publisher(rviz_marker_topic, Marker, queue_size=count)
@@ -71,6 +75,7 @@ class LinePath():
         speeds[0:len(ramp_up)] = ramp_up
         speeds[-len(ramp_down):] = ramp_down
         path = XYHVPath(h, [XYHV(*[config[0], config[1], config[2], speed]) for config, speed in zip(configs, speeds)])
+        success = self.controller(path)
 
 
     """
@@ -78,8 +83,12 @@ class LinePath():
     """
     def callback(self, msg):
         self.current_path = []
-        pose_stamped = msg
-        rotation_matrix = tft.quaternion_matrix(vector(msg.pose.orientation))
+        if self.ahead: 
+       	        pose_stamped = deepcopy(self.pose)
+		pose_stamped.header = msg.header
+        else:
+       	        pose_stamped = msg
+        rotation_matrix = tft.quaternion_matrix(vector(pose_stamped.pose.orientation))
         translation = np.dot(rotation_matrix, [1, 0, 0, 0])
         for i in range(self.count):
             cur_pose = deepcopy(pose_stamped)
@@ -93,3 +102,13 @@ class LinePath():
             pose_stamped.pose.position.z += translation[2] * self.offset
 
         self.publish_config_path()
+
+    """
+    Callback for PoseWithCovarianceStamped pose messages
+    """
+    def pose_callback(self, msg):
+        if not self.got_pose:
+                print("Got pose")
+                self.pose = PoseStamped()
+                self.pose.pose = msg.pose.pose
+                self.got_pose = True

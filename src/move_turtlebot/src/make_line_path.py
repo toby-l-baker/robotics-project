@@ -12,7 +12,7 @@ def wait_for_time():
 def main():
     rospy.init_node("make_line_path")
     wait_for_time()
-    linePath = LinePath(0.05, 40)
+    linePath = LinePath(0.05, 40, True)
     rospy.spin()
 
 if __name__ == "__main__":
