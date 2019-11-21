@@ -1,7 +1,0 @@
-<launch>
-	<node pkg="lab2" type="main.py" name="controller" output="screen">
-		<param name="type" value="PP"/>
-		<!--param name="pose_topic" value="/pf/viz/inferred_pose"-->
-		<param name="pose_topic" value="/sim_car_pose/pose"/>
-	</node>
-</launch>

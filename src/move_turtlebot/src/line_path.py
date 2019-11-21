@@ -3,9 +3,12 @@ import tf.transformations as tft
 import numpy as np
 import actionlib
 
+from lab2.msg import XYHVPath
+from lab2.srv import FollowPath
 from move_base_msgs.msg import MoveBaseAction, MoveBaseActionGoal
 from geometry_msgs.msg import PoseStamped, Vector3
 from visualization_msgs.msg import Marker
+from std_msgs.msg import Header
 
 from copy import deepcopy
 
@@ -43,11 +46,32 @@ class LinePath():
         rviz_marker_topic = "line_path/markers"
         self.marker_pub = rospy.Publisher(rviz_marker_topic, Marker, queue_size=count)
 
-        self.client = actionlib.SimpleActionClient("move_base/goal", MoveBaseAction)
-        self.client.wait_for_server()
+        # Publishes resulting path to the topic for the controller
+        self.controller = rospy.ServiceProxy("/controller/follow_path", FollowPath())
 
         self.current_path = None
         print("Initialized")
+
+    def publish_config_path(self):
+        configs = []
+        for pose_stamped in self.current_path:
+            x = pose_stamped.pose.position.x
+            y = pose_stamped.pose.position.y
+            z_ang = tft.euler_from_quaternion(vector(pose_stamped.pose.orientation))[2]
+            configs.append([x, y, z_ang])
+
+        h = Header()
+        h.stamp = rospy.Time.now()
+        desired_speed = 0.2
+        ramp_percent = 0.1
+        ramp_up = np.linspace(0.0, desired_speed, int(ramp_percent * len(configs)))
+        ramp_down = np.linspace(desired_speed, 0.3, int(ramp_percent * len(configs)))
+        speeds = np.zeros(len(configs))
+        speeds[:] = desired_speed
+        speeds[0:len(ramp_up)] = ramp_up
+        speeds[-len(ramp_down):] = ramp_down
+        path = XYHVPath(h, [XYHV(*[config[0], config[1], config[2], speed]) for config, speed in zip(configs, speeds)])
+
 
     """
     Callback for PoseStamped start goal messages
@@ -68,12 +92,4 @@ class LinePath():
             pose_stamped.pose.position.y += translation[1] * self.offset
             pose_stamped.pose.position.z += translation[2] * self.offset
 
-            goal = MoveBaseActionGoal()
-            goal.header = cur_pose.header
-            goal.goal_id.stamp = goal.header.stamp
-            goal.goal_id.id = i
-            goal.goal.target_pose = cur_pose
-            self.client.send_goal(goal)
-            print(goal)
-
-            self.client.wait_for_result()
+        self.publish_config_path()
