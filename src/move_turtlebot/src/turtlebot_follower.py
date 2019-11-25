@@ -14,54 +14,57 @@ def vector(obj):
             result.append(getattr(obj, attr))
     return result
 
-class VelocityController:
+class TurtlebotFollower:
     """
-    This class will subscribe to the transform from the slaves
-    USB_Cam and the AR Tag on the master turtlebot. Using this
-    transform it will alter the velocities in the path to align 
-    each turtlebot.
+    This class will follow another turtlebot using it's localization
+    through either AR tags or another method.
+
+    Publishes to cmd_vel_mux
     """
-    def __init__(self, marker_num, turtlebot_num, master_turtlebot_num):
+    def __init__(self, marker_name, turtlebot_name, turtlebot_to_follow):
+        rospy.init_node('turtlebot_follower', anonymous=True)
+
         """Setup the names for the transform"""
-        self.turtlebot = "/mobile_base" # "/mobile_base_"+turtlebot_num
-        self.master_turtlebot = str("/mobile_base_"+master_turtlebot_num) # mobile_base_0
-        self.marker_frame = str("ar_marker_"+marker_num) # self.master_turtlebot+"/ar_marker_"+marker_num
+        self.turtlebot_name = turtlebot_name
+        self.turtlebot_to_follow = turtlebot_to_follow
+        self.marker_frame = marker_name
+        # TODO use ros parameters to remap topics to new namespace
         self.camera_frame = "camera_rgb_frame" # self.turtlebot+"/usb_cam_frame"
 
-        """Setup the publisher and tf buffers"""
+        """Setup scaling constants"""
+        self.x_scale = 1.0
+        self.y_scale = 1.0
+        self.x_desired = 0.2
+        self.y_desired = 0.0
+
+        """Setup the tf listener"""
         self.tfBuffer = tf2_ros.Buffer()
         self.tfListener = tf2_ros.TransformListener(self.tfBuffer)
         rospy.sleep(2)
 
-        """Variables for old and new times for relative velocities"""
-        self.oldTime = rospy.get_time()
-        self.newTime = rospy.get_time()
+        """Setup cmd_vel_mux publisher"""
+        # TODO: Allow for remapping
+        cmd_vel_topic = "cmd_vel_mux/navi"
+        self.cmd_vel_pub = rospy.Publisher(cmd_vel_topic, Twist, queue_size=1)
 
-        try:
-            self.oldTransform = self.tfBuffer.lookup_transform(self.camera_frame, self.marker_frame, rospy.Time())
-            self.newTransform = self.tfBuffer.lookup_transform(self.camera_frame, self.marker_frame, rospy.Time())
-        except Exception as e:
-            print(e)
-        self.velocities = np.zeros((6, 5))
+        period = rospy.Duration(0.05)
+        self.timer = rospy.Timer(period, self.update_velocity, False)
 
-
+        rospy.spin()
 
     def update_velocity(self):
-        """Get transform from the camera frame to the marker frame"""
+        """Compute cmd_vel messages and publish"""
         try:
-            self.trans = self.tfBuffer.lookup_transform(self.camera_frame, self.marker_frame, rospy.Time())
+            self.trans = self.tfBuffer.lookup_transform(self.turtlebot_name, self.marker_frame, rospy.Time())
+            x, y = self.trans.transform.translation.x, self.trans.transform.translation.y
+            twist = Twist()
+            twist.linear.x = self.x_scale * (x - x_desired)
+            twist.angular.z = self.y_scale * (y - y_desired)
+            self.cmd_vel_pub.publish(twist)
         except Exception as e:
             print(e)
-
-        # print(self.trans)
-        current = np.array([self.trans.transform.translation.x, self.trans.transform.translation.y])
-        desired = np.array([0.5, 0])
-        self.velocity = Twist()
-        # print("X Position %f" % (current[0]))
-        # print("Y Position %f" % (current[1]))
-
-        # self.velocity.linear.x = (current[0] - desired[0])
-        # self.velocity.angular.z = (current[1] - desired[1])
+            """Tells robot to stop"""
+            self.cmd_vel_pub.publish(Twist())
 
     def get_relative_velocity(self):
         self.oldTime = self.newTime

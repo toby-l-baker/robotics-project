@@ -6,9 +6,11 @@ Takes in a known map file through the argument `map_file`
 
 Outputs the inferred pose to `/amcl_pose` topic
 -->
+
 <launch>
-  <!-- 3D sensor -->
+  <!-- SENSOR NODE PACKAGE - 3D sensor -->
   <arg name="3d_sensor" default="$(env TURTLEBOT_3D_SENSOR)"/>  <!-- r200, kinect, asus_xtion_pro -->
+
   <include file="$(find turtlebot_bringup)/launch/3dsensor.launch">
     <arg name="rgb_processing" value="false" />
     <arg name="depth_registration" value="false" />
@@ -23,7 +25,7 @@ Outputs the inferred pose to `/amcl_pose` topic
   <arg name="map_file" default="$(env TURTLEBOT_MAP_FILE)"/>
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
 
-  <!-- AMCL -->
+  <!-- AMCL localization -->
   <arg name="custom_amcl_launch_file" default="$(find vision)/launch/amcl.launch.xml"/>
   <arg name="initial_pose_x" default="0.0"/> <!-- Use 17.0 for willow's map in simulation -->
   <arg name="initial_pose_y" default="0.0"/> <!-- Use 17.0 for willow's map in simulation -->
@@ -33,4 +35,7 @@ Outputs the inferred pose to `/amcl_pose` topic
     <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
     <arg name="initial_pose_a" value="$(arg initial_pose_a)"/>
   </include>
+
+  <!-- Odom package setup by bringup -->
+  <!-- Tf package setup by bringup -->
 </launch>
