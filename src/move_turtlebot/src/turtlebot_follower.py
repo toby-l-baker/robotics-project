@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import tf2_ros
+import tf
 import rospy
 from geometry_msgs.msg import Twist, Pose, PoseStamped
 import numpy as np
@@ -34,17 +34,18 @@ class TurtlebotFollower:
         """Setup scaling constants"""
         self.x_scale = 1.0
         self.y_scale = 1.0
-        self.x_desired = 0.2
+        self.x_desired = 0.4
         self.y_desired = 0.0
+        self.x_vel_max = 0.5
+        self.z_ang_max = 1.0
 
-        """Setup the tf listener"""
-        self.tfBuffer = tf2_ros.Buffer()
-        self.tfListener = tf2_ros.TransformListener(self.tfBuffer)
+        """Setup the tf transformer with 5 second cache time"""
+        self.transformer = tf.TransformListener(cache_time=rospy.Duration(5.0))
         rospy.sleep(2)
 
         """Setup cmd_vel_mux publisher"""
         # TODO: Allow for remapping
-        cmd_vel_topic = "cmd_vel_mux/navi"
+        cmd_vel_topic = "cmd_vel_mux/input/navi"
         self.cmd_vel_pub = rospy.Publisher(cmd_vel_topic, Twist, queue_size=1)
 
         period = rospy.Duration(0.05)
@@ -52,19 +53,31 @@ class TurtlebotFollower:
 
         rospy.spin()
 
-    def update_velocity(self):
+    def update_velocity(self, event):
         """Compute cmd_vel messages and publish"""
         try:
-            self.trans = self.tfBuffer.lookup_transform(self.turtlebot_name, self.marker_frame, rospy.Time())
-            x, y = self.trans.transform.translation.x, self.trans.transform.translation.y
+            trans, rot = self.transformer.lookupTransform(self.turtlebot_name,
+                                                          self.marker_frame,
+                                                          rospy.Time())
+            x, y = trans[0], trans[1]
             twist = Twist()
-            twist.linear.x = self.x_scale * (x - x_desired)
-            twist.angular.z = self.y_scale * (y - y_desired)
+            twist.linear.x = self.x_scale * (x - self.x_desired)
+            if twist.linear.x > self.x_vel_max:
+                twist.linear.x = self.x_vel_max
+            elif twist.linear.x < -self.x_vel_max:
+                twist.linear.x = -self.x_vel_max
+
+            twist.angular.z = self.y_scale * (y - self.y_desired)
+            if twist.angular.z > self.z_ang_max:
+                twist.angular.z = self.z_ang_max
+            elif twist.angular.z < -self.z_ang_max:
+                twist.angular.z = -self.z_ang_max
+
             self.cmd_vel_pub.publish(twist)
-        except Exception as e:
-            print(e)
+        except tf.Exception as e:
             """Tells robot to stop"""
             self.cmd_vel_pub.publish(Twist())
+            print("Exception occurred:", e)
 
     def get_relative_velocity(self):
         self.oldTime = self.newTime
