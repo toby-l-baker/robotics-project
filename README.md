@@ -8,3 +8,4 @@ Autonomous robot designed to collect trash cans and take them to centralized loc
 - start ar tag localization (vision ar_tag_kinect_track.launch)
 - start rviz visualization (turtlebot_rviz_launchers view_navigation.launch)
 
+[http://wiki.ros.org/turtlebot_navigation/Tutorials/Setup%20the%20Navigation%20Stack%20for%20TurtleBot](http://wiki.ros.org/turtlebot_navigation/Tutorials/Setup%20the%20Navigation%20Stack%20for%20TurtleBot)
