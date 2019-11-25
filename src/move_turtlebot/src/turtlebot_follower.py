@@ -40,7 +40,8 @@ class TurtlebotFollower:
         self.z_ang_max = 1.0
 
         """Setup the tf transformer with 5 second cache time"""
-        self.transformer = tf.TransformListener(cache_time=rospy.Duration(5.0))
+        self.cache_time = 5.0
+        self.transformer = tf.TransformListener(cache_time=rospy.Duration(self.cache_time))
         rospy.sleep(2)
 
         """Setup cmd_vel_mux publisher"""
@@ -56,6 +57,13 @@ class TurtlebotFollower:
     def update_velocity(self, event):
         """Compute cmd_vel messages and publish"""
         try:
+            latest_time = self.transformer.getLatestCommonTime(self.turtlebot_name, self.marker_frame)
+            current_time = rospy.Time.now()
+
+            if current_time.secs - latest_time.secs > self.cache_time:
+                self.cmd_vel_pub.publish(Twist())
+                return
+
             trans, rot = self.transformer.lookupTransform(self.turtlebot_name,
                                                           self.marker_frame,
                                                           rospy.Time())
