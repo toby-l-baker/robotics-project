@@ -10,7 +10,22 @@ project(move_turtlebot)
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   rospy
+  base_local_planner
+  costmap_2d
+  nav_core
+  pluginlib
+  roscpp
+  tf2
+  tf2_geometry_msgs
+  tf2_ros
 )
+
+include_directories(
+    include 
+    ${catkin_INCLUDE_DIRS}
+)
+
+add_definitions(${EIGEN3_DEFINITIONS})
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -102,10 +117,16 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES move_turtlebot
-#  CATKIN_DEPENDS geometry_msgs rospy
-#  DEPENDS system_lib
+    INCLUDE_DIRS include
+    LIBRARIES move_turtlebot
+    CATKIN_DEPENDS
+      base_local_planner
+      costmap_2d
+      nav_core
+      pluginlib
+      roscpp
+      tf2
+      tf2_ros
 )
 
 ###########
@@ -120,14 +141,14 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/move_turtlebot.cpp
-# )
+add_library(${PROJECT_NAME}
+  src/move_turtlebot_global_planner.cpp
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
