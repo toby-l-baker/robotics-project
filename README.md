@@ -1,4 +1,4 @@
-# robotics-project
+# The Project
 This project designed to act as a proof of concept for package transfer between trucks. For this proof of concept we are using two turtlebots to trasfer a golf ball to each other while moving. The algorithms will be written in a scalable manner.
 
 # MVP 11/27
@@ -15,7 +15,10 @@ This project designed to act as a proof of concept for package transfer between 
 
 # Extension 2 
 
-- Three turtlebots!!!
+- Three turtlebots!!! 
+- Make the above MVP into a service capable of being executed multiple times and being updated in real-time.
+
+# Other
 
 - start turtlebot bringup minimal
 - start amcl localization (vision localization.launch) with map (robot\_lab2.yaml)
