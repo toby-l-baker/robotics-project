@@ -18,11 +18,21 @@ This project designed to act as a proof of concept for package transfer between 
 - Three turtlebots!!! 
 - Make the above MVP into a service capable of being executed multiple times and being updated in real-time.
 
-# Other
+# Launch startup
 
 - start turtlebot bringup minimal
 - start amcl localization (vision localization.launch) with map (robot\_lab2.yaml)
 - start ar tag localization (vision ar_tag_kinect_track.launch)
 - start rviz visualization (turtlebot_rviz_launchers view_navigation.launch)
+
+# State Machine design
+
+- event input gathering
+- state machine enter exit functions
+- compute new goals
+- send new goals
+
+- Take in topics from amcl_pose and move_base navigation complete info
+- Output to control a new CMD_VEL_MUX to control node outputs
 
 [http://wiki.ros.org/turtlebot_navigation/Tutorials/Setup%20the%20Navigation%20Stack%20for%20TurtleBot](http://wiki.ros.org/turtlebot_navigation/Tutorials/Setup%20the%20Navigation%20Stack%20for%20TurtleBot)
