@@ -4,6 +4,15 @@ from geometry_msgs.msg import Twist, PoseStamped
 
 from states import *
 
+def vector(obj):
+    """Returns an np array of the input object"""
+    result = []
+    attributes = ["x", "y", "z", "w"]
+    for attr in attributes:
+        if hasattr(obj, attr):
+            result.append(getattr(obj, attr))
+    return np.array(result)
+
 class StateMachine():
     """
     A node to handle the overarching state machine of transfering
@@ -71,6 +80,21 @@ class StateMachine():
 
     def pub_motors(self, twist=Twist()):
         self.motor_pub.pub(twist)
+
+    def get_robot_proximity(self):
+        """
+        Returns the proximity of this robot and the other robot
+        """
+        my_point = vector(self.my_pose.pose.position)
+        other_point = vector(self.other_pose.pose.position)
+        return np.linalg.norm(my_point - other_point)
+
+    def trigger_exchange(self):
+        """
+        Starts the exchange package process
+        """
+        # TODO: implement
+        pass
 
     """
     CALLBACKS
