@@ -1,6 +1,7 @@
 
 import rospy
 from geometry_msgs.msg import Twist, PoseStamped
+from std_msgs.msg import String
 
 from states import *
 
@@ -104,6 +105,10 @@ class StateMachine():
             self.next_state = Idle()
         if msg.data == "start":
             self.next_state = InitialNavigation()
+        if msg.data == "follow":
+            self.next_state = FollowerAlign()
+        if msg.data == "lead":
+            self.next_state = LeaderAlign()
 
     def move_base_callback(self, msg):
         if self.state.name == "InitialNavigation":

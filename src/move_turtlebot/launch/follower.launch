@@ -1,0 +1,12 @@
+<launch>
+    <arg name="follower_topic" default="follower_cmds"/>
+    <arg name="other_marker_frame" default="ar_marker_9"/>
+
+    <node name="follower" pkg="move_turtlebot" type="make_turtlebot_follower.py">
+        <param name="follower_motor_cmds" value="$(env ROS_NAMESPACE)/$(arg follower_topic)"/>
+        <param name="name" value="$(env ROS_NAMESPACE)"/>
+        <param name="marker_frame_to_follow" value="$(arg other_marker_frame)"/>
+        
+    </node>
+
+</launch>

@@ -4,7 +4,7 @@ Classes defining states
 
 import numpy as np
 
-class State():
+class State(object):
     """
     An abstract class for a state machine state value
     """
@@ -123,7 +123,7 @@ class ExchangePackage(State):
     """
     State corresponding to exchanging package
     """
-    def __init__(self)
+    def __init__(self):
         super(ExchangePackage, self).__init__("ExchangePackage")
         self.exchange_start_time = None
         self.duration = ropsy.Duration(secs=float(rospy.get_param("~exchange_duration")))

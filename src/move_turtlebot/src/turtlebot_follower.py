@@ -21,15 +21,13 @@ class TurtlebotFollower:
 
     Publishes to cmd_vel_mux
     """
-    def __init__(self, marker_name, turtlebot_name, turtlebot_to_follow):
+    def __init__(self):
         rospy.init_node('turtlebot_follower', anonymous=True)
 
         """Setup the names for the transform"""
-        self.turtlebot_name = turtlebot_name
-        self.turtlebot_to_follow = turtlebot_to_follow
-        self.marker_frame = marker_name
-        # TODO use ros parameters to remap topics to new namespace
-        self.camera_frame = "camera_rgb_frame" # self.turtlebot+"/usb_cam_frame"
+        self.turtlebot_name = rospy.get_param("~name")
+        self.marker_frame = rospy.get_param("~marker_frame_to_follow")
+        self.camera_frame = self.turtlebot_name + "/camera_rgb_frame"
 
         """Setup scaling constants"""
         self.x_scale = 1.0
@@ -46,7 +44,7 @@ class TurtlebotFollower:
 
         """Setup cmd_vel_mux publisher"""
         # TODO: Allow for remapping
-        cmd_vel_topic = "cmd_vel_mux/input/navi"
+        cmd_vel_topic = rospy.get_param("~follower_motor_cmds")
         self.cmd_vel_pub = rospy.Publisher(cmd_vel_topic, Twist, queue_size=1)
 
         period = rospy.Duration(0.05)
