@@ -1,0 +1,29 @@
+<launch>
+    <arg name="exchange_follower_topic" default="exchange_follower_cmds"/>
+    <arg name="speed_topic" default="follower_speed"/>
+    <arg name="other_marker_frame" default="ar_marker_5"/>
+    <arg name="cache_time" default="5.0"/>
+    <arg name="target_distance" default="0.10"/>
+    <arg name="x_gain" default="1.0"/>
+    <arg name="y_gain" default="1.25"/>
+    <arg name="x_threshold" default="0.1"/>
+    <arg name="x_min_speed" default="0.0"/>
+    <!-- TODO replace with topic info -->
+    <arg name="other_velocity" default="0.1"/>
+
+    <node name="exchange_follower" pkg="move_turtlebot" type="make_turtlebot_follower.py">
+        <param name="follower_motor_cmds" value="$(arg exchange_follower_topic)"/>
+        <param name="speed_topic" value="$(arg speed_topic)"/>
+        <param name="name" value="$(env ROS_NAMESPACE)"/>
+        <param name="marker_frame_to_follow" value="$(arg other_marker_frame)"/>
+
+        <param name="cache_time" value="$(arg cache_time)"/>
+        <param name="target_distance" value="$(arg target_distance)"/>
+        <param name="x_gain" value="$(arg x_gain)"/>
+        <param name="y_gain" value="$(arg y_gain)"/>
+        <param name="x_threshold" value="$(arg x_threshold)"/>
+        <param name="x_min_speed" value="$(arg x_min_speed)"/>
+        <param name="target_velocity" value="$(arg other_velocity)"/>
+    </node>
+
+</launch>
