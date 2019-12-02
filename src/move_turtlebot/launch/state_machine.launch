@@ -1,21 +1,28 @@
 <launch>
 
+    <!-- Initial bringup launch files -->
+    <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+    <include file="$(find vision)/launch/localization.launch">
+        <arg name="map_file" value="/tmp/robot_lab2.yaml"/>
+    </include>
+    <include file="$(find move_turtlebot)/launch/move_base.launch"/>
+
+    <!-- State machine node -->
     <arg name="move_base_topic" default="move_base_cmds"/>
     <arg name="follower_topic" default="follower_cmds"/>
 
-    <!-- State machine node -->
     <node name="state_machine" pkg="move_turtlebot" type="state_machine_node.py">
         <!-- Common topics between robots -->
-        <param name="package_sub_topic" value="package_owner"/>
-        <param name="motor_pub_topic" value="cmd_vel_mux/navi"/>
+        <param name="package_sub_topic" value="/package_owner"/>
 
         <!-- Individual topics/params for each robot -->
+        <param name="motor_pub_topic" value="cmd_vel_mux/input/navi"/>
         <param name="name" value="$(env ROS_NAMESPACE)"/>
-        <param name="my_pose_sub_topic" value="$(env ROS_NAMESPACE)/amcl_pose"/>
-        <param name="other_pose_sub_topic" value="$(env OTHER_NAMESPACE)/amcl_pose"/>
-        <param name="move_base_sub_topic" value="$(env ROS_NAMESPACE)/$(arg move_base_topic)"/>
-        <param name="follower_sub_topic" value="$(env ROS_NAMESPACE)/$(arg follower_topic)"/>
-        <param name="meta_sub_topic" value="$(env ROS_NAMESPACE)/meta"/>
+        <param name="my_pose_sub_topic" value="amcl_pose"/>
+        <param name="other_pose_sub_topic" value="/$(env OTHER_NAMESPACE)/amcl_pose"/>
+        <param name="move_base_sub_topic" value="$(arg move_base_topic)"/>
+        <param name="follower_sub_topic" value="$(arg follower_topic)"/>
+        <param name="meta_sub_topic" value="meta"/>
     </node>
 
     <!-- Other launch files to start -->

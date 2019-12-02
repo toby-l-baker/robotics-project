@@ -1,6 +1,6 @@
 
 import rospy
-from geometry_msgs.msg import Twist, PoseStamped
+from geometry_msgs.msg import Twist, PoseStamped, PoseWithCovarianceStamped
 from std_msgs.msg import String
 
 from states import *
@@ -39,12 +39,12 @@ class StateMachine():
 
         # Current robot pose information
         my_pose_sub_topic = rospy.get_param('~my_pose_sub_topic')
-        self.my_pose_sub = rospy.Subscriber(my_pose_sub_topic, PoseStamped, self.my_pose_callback)
+        self.my_pose_sub = rospy.Subscriber(my_pose_sub_topic, PoseWithCovarianceStamped, self.my_pose_callback)
         self.my_pose = PoseStamped()
 
         # Other robot pose information
         other_pose_sub_topic = rospy.get_param('~other_pose_sub_topic')
-        self.other_pose_sub = rospy.Subscriber(other_pose_sub_topic, PoseStamped, self.other_pose_callback)
+        self.other_pose_sub = rospy.Subscriber(other_pose_sub_topic, PoseWithCovarianceStamped, self.other_pose_callback)
         self.other_pose = PoseStamped()
 
         # Motor Inputs - immediately forwarded, so no other variables needed
