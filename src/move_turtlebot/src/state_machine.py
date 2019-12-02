@@ -58,6 +58,12 @@ class StateMachine():
         follower_sub_topic = rospy.get_param('~follower_sub_topic')
         self.follower_sub = rospy.Subscriber(follower_sub_topic, Twist, self.follower_callback)
 
+        exchange_follower_sub_topic = rospy.get_param('~exchange_follower_sub_topic')
+        self.exchange_follower_sub = rospy.Subscriber(exchange_follower_sub_topic, Twist, self.exchange_follower_callback)
+
+        follower_error_topic = rospy.get_param('~follower_error')
+        self.follower_error_sub = rospy.Subscriber(follower_error_topic, Float64, self.follower_error_callback)
+
         # Meta topic - misc control
         meta_sub_topic = rospy.get_param("~meta_sub_topic")
         self.meta_sub = rospy.Subscriber(meta_sub_topic, String, self.meta_callback)
@@ -122,6 +128,8 @@ class StateMachine():
             self.next_state = InitialNavigation()
         if msg.data == "follow":
             self.next_state = FollowerAlign()
+        if msg.data == "exchange":
+            self.next_state = ExchangePackage()
         if msg.data == "lead":
             self.next_state = LeaderAlign()
 
@@ -134,6 +142,12 @@ class StateMachine():
     def follower_callback(self, msg):
         if self.state.name == "FollowerAlign":
             self.pub_motors(msg)
+        if self.state.name == "ExchangePackage":
+            self.pub_motors(msg)
+
+    def exchange_follower_callback(self, msg):
+        if self.state.name == "ExchangePackage":
+            self.pub_motors(msg)
 
     def my_pose_callback(self, msg):
         self.my_pose = msg
@@ -143,6 +157,14 @@ class StateMachine():
 
     def package_callback(self, msg):
         self.package_owner = msg.data
+
+    def follower_error_callback(self, msg):
+        if self.state.name == "FollowerAlign":
+            if msg.data < self.state.proximity:
+                self.next_state = ExchangePackage()
+        elif self.state.name == "ExchangePackage":
+            if msg.data > self.state.proximity + self.state.epsilon:
+                self.next_state = FollowerAlign()
 
     def bumper_callback(self, msg):
         if not self.state.name == "FollowerAlign":

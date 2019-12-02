@@ -35,6 +35,9 @@ class TurtlebotFollower:
         self.x_scale = rospy.get_param("~x_gain")
         self.y_scale = rospy.get_param("~y_gain")
         self.x_desired = rospy.get_param("~target_distance")
+        self.x_threshold = rospy.get_param("~x_threshold")
+        self.x_min_speed = rospy.get_param("~x_min_speed")
+        self.target_velocity = rospy.get_param("~target_velocity")
         self.y_desired = 0.0
         self.x_vel_max = 0.5
         self.z_ang_max = 1.0
@@ -47,12 +50,14 @@ class TurtlebotFollower:
         rospy.sleep(2)
 
         """Setup cmd_vel_mux publisher"""
-        # TODO: Allow for remapping
         cmd_vel_topic = rospy.get_param("~follower_motor_cmds")
         self.cmd_vel_pub = rospy.Publisher(cmd_vel_topic, Twist, queue_size=1)
 
+        """Setup error info publisher"""
+        error_topic = rospy.get_param("~error_topic")
+        self.error_pub = rospy.Publisher(error_topic, Float64, queue_size=1)
+
         """Setup cmd_vel_mux publisher"""
-        # TODO: Allow for remapping
         reset_topic = "follower/reset"
         self.reset_sub = rospy.Subscriber(reset_topic, Empty, self.reset_params)
 
@@ -70,6 +75,9 @@ class TurtlebotFollower:
         self.x_scale = rospy.get_param("~x_gain")
         self.y_scale = rospy.get_param("~y_gain")
         self.cache_time = rospy.get_param("~cache_time")
+        self.x_threshold = rospy.get_param("~x_threshold")
+        self.x_min_speed = rospy.get_param("~x_min_speed")
+        self.target_velocity = rospy.get_param("~target_velocity")
 
     def speed_callback(self, msg):
         self.default_speed = msg.data
@@ -93,7 +101,11 @@ class TurtlebotFollower:
                                                           rospy.Time())
             x, y = trans[0], trans[1]
             twist = Twist()
-            twist.linear.x = self.x_scale * (x - self.x_desired)
+            error = x - self.x_desired
+            self.error_pub.publish(Float64(error))
+            twist.linear.x = self.target_velocity + self.x_scale * error
+            if x - self.x_desired > self.x_threshold:
+                twist.linear.x += self.x_min_speed
             if twist.linear.x > self.x_vel_max:
                 twist.linear.x = self.x_vel_max
             elif twist.linear.x < -self.x_vel_max:

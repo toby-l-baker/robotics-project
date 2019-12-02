@@ -148,6 +148,8 @@ class ExchangePackage(State):
     """
     def __init__(self):
         super(ExchangePackage, self).__init__("ExchangePackage")
+        self.proximity = rospy.get_param("~required_proximity")
+        self.epsilon = rospy.get_param("~epsilon")
         self.exchange_start_time = None
         self.duration = rospy.Duration(secs=rospy.get_param("~exchange_duration"))
 
@@ -163,6 +165,8 @@ class ExchangePackage(State):
 
     def reset_params(self):
         self.duration = rospy.Duration(secs=rospy.get_param("~exchange_duration"))
+        self.proximity = rospy.get_param("~required_proximity")
+        self.epsilon = rospy.get_param("~epsilon")
 
 class FinalNavigation(State):
     """
