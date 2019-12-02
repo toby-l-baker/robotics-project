@@ -1,12 +1,4 @@
 <launch>
-
-    <!-- Initial bringup launch files -->
-    <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
-    <include file="$(find vision)/launch/localization.launch">
-        <arg name="map_file" value="/tmp/robot_lab2.yaml"/>
-    </include>
-    <include file="$(find move_turtlebot)/launch/move_base.launch"/>
-
     <!-- State machine node -->
     <arg name="move_base_topic" default="move_base_cmds"/>
     <arg name="follower_topic" default="follower_cmds"/>
@@ -23,11 +15,15 @@
         <param name="move_base_sub_topic" value="$(arg move_base_topic)"/>
         <param name="follower_sub_topic" value="$(arg follower_topic)"/>
         <param name="meta_sub_topic" value="meta"/>
+
+        <param name="required_proximity" value="1"/>
+        <param name="initial_proximity" value="1"/>
+        <param name="required_duration" value="1"/>
+        <param name="exchange_proximity" value="1"/>
     </node>
 
     <!-- Other launch files to start -->
     <include file="$(find move_turtlebot)/launch/follower.launch">
         <arg name="follower_topic" value="$(arg follower_topic)"/>
     </include>
-
 </launch>

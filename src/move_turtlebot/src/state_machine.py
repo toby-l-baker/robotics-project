@@ -24,6 +24,9 @@ class StateMachine():
 
         self.name = rospy.get_param('~name')
 
+        self.state = Idle()
+        self.next_state = None
+
         # Get info on which robot has the package
         package_sub_topic = rospy.get_param('~package_sub_topic')
         self.package_sub = rospy.Subscriber(package_sub_topic, String, self.package_callback)
@@ -58,9 +61,6 @@ class StateMachine():
         meta_sub_topic = rospy.get_param("~meta_sub_topic")
         self.meta_sub = rospy.Subscriber(meta_sub_topic, String, self.meta_callback)
 
-        self.state = Idle()
-        self.next_state = None
-
         rate = rospy.Rate(30)
 
         while not rospy.is_shutdown():
@@ -72,6 +72,7 @@ class StateMachine():
         Transitions state if there is a next state
         Otherwise uses exit to check if next state is found
         """
+        print("State:", self.state.name)
         if self.next_state:
             self.state = self.next_state
             self.next_state = None
@@ -80,7 +81,7 @@ class StateMachine():
             self.next_state = self.state.exit(self)
 
     def pub_motors(self, twist=Twist()):
-        self.motor_pub.pub(twist)
+        self.motor_pub.publish(twist)
 
     def get_robot_proximity(self):
         """

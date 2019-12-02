@@ -3,6 +3,7 @@ Classes defining states
 """
 
 import numpy as np
+import rospy
 
 class State(object):
     """
@@ -79,6 +80,8 @@ class FollowerAlign(State):
         pass
 
     def exit(self, machine):
+        return None
+        """
         if machine.get_robot_proximity() < self.proximity:
             if not self.close_start_time:
                 self.close_start_time = rospy.Time.now()
@@ -90,6 +93,7 @@ class FollowerAlign(State):
                 return ExchangePackage()
 
         return None
+        """
 
 
 class LeaderAlign(State):
