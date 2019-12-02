@@ -1,13 +1,22 @@
 <launch>
     <arg name="follower_topic" default="follower_cmds"/>
-    <arg name="other_marker_frame" default="ar_marker_13"/>
-    <arg name="cache_time" default="10.0"/>
+    <arg name="speed_topic" default="follower_speed"/>
+    <arg name="other_marker_frame" default="ar_marker_0"/>
+    <arg name="cache_time" default="5.0"/>
+    <arg name="target_distance" default="0.22"/>
+    <arg name="x_gain" default="1.3"/>
+    <arg name="y_gain" default="1.2"/>
 
     <node name="follower" pkg="move_turtlebot" type="make_turtlebot_follower.py">
         <param name="follower_motor_cmds" value="$(arg follower_topic)"/>
+        <param name="speed_topic" value="$(arg speed_topic)"/>
         <param name="name" value="$(env ROS_NAMESPACE)"/>
         <param name="marker_frame_to_follow" value="$(arg other_marker_frame)"/>
+
         <param name="cache_time" value="$(arg cache_time)"/>
+        <param name="target_distance" value="$(arg target_distance)"/>
+        <param name="x_gain" value="$(arg x_gain)"/>
+        <param name="y_gain" value="$(arg y_gain)"/>
     </node>
 
 </launch>

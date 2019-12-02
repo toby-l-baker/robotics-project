@@ -13,8 +13,7 @@ class State(object):
         self.name = name
 
     def entry(self, machine):
-        """
-        Invoked on entering the state - only once
+        """ Invoked on entering the state - only once
         machine - reference to state machine
 
         no return
@@ -30,6 +29,12 @@ class State(object):
         """
         return None
 
+    def reset_params(self):
+        """
+        Resets parameters from current parameter server
+        """
+        pass
+
 
 class Idle(State):
     """
@@ -44,13 +49,16 @@ class Idle(State):
     def exit(self, machine):
         return None
 
+    def reset_params(self):
+        pass
+
 class InitialNavigation(State):
     """
     State corresponding to robots navigating to each other
     """
     def __init__(self):
         super(InitialNavigation, self).__init__("InitialNavigation")
-        self.proximity = float(rospy.get_param("~initial_proximity"))
+        self.proximity = rospy.get_param("~initial_proximity")
 
     def entry(self, machine):
         pass
@@ -65,6 +73,9 @@ class InitialNavigation(State):
 
         return None
 
+    def reset_params(self):
+        self.proximity = rospy.get_param("~initial_proximity")
+
 class FollowerAlign(State):
     """
     State corresponding to robot following to align
@@ -73,7 +84,7 @@ class FollowerAlign(State):
         super(FollowerAlign, self).__init__("FollowerAlign")
         # Need to have robots be close to each other before switching state
         self.close_start_time = None
-        self.proximity = float(rospy.get_param("~required_proximity"))
+        self.proximity = rospy.get_param("~required_proximity")
         self.duration = rospy.Duration(secs=rospy.get_param("~required_duration"))
 
     def entry(self, machine):
@@ -95,6 +106,10 @@ class FollowerAlign(State):
         return None
         """
 
+    def reset_params(self):
+        self.proximity = rospy.get_param("~required_proximity")
+        self.duration = rospy.Duration(secs=rospy.get_param("~required_duration"))
+
 
 class LeaderAlign(State):
     """
@@ -104,8 +119,8 @@ class LeaderAlign(State):
         super(LeaderAlign, self).__init__("LeaderAlign")
         # Need to have robots be close to each other before switching state
         self.close_start_time = None
-        self.proximity = float(rospy.get_param("~required_proximity"))
-        self.duration = rospy.Duration(secs=float(rospy.get_param("~required_duration")))
+        self.proximity = rospy.get_param("~required_proximity")
+        self.duration = rospy.Duration(secs=rospy.get_param("~required_duration"))
 
     def entry(self, machine):
         pass
@@ -122,6 +137,10 @@ class LeaderAlign(State):
                 return ExchangePackage()
 
         return None
+    
+    def reset_params(self):
+        self.proximity = rospy.get_param("~required_proximity")
+        self.duration = rospy.Duration(secs=rospy.get_param("~required_duration"))
 
 class ExchangePackage(State):
     """
@@ -130,7 +149,7 @@ class ExchangePackage(State):
     def __init__(self):
         super(ExchangePackage, self).__init__("ExchangePackage")
         self.exchange_start_time = None
-        self.duration = ropsy.Duration(secs=float(rospy.get_param("~exchange_duration")))
+        self.duration = rospy.Duration(secs=rospy.get_param("~exchange_duration"))
 
     def entry(self, machine):
         self.exchange_start_time = rospy.Time.now()
@@ -142,6 +161,9 @@ class ExchangePackage(State):
 
         return None
 
+    def reset_params(self):
+        self.duration = rospy.Duration(secs=rospy.get_param("~exchange_duration"))
+
 class FinalNavigation(State):
     """
     State corresponding to robots navigating away from each other
@@ -150,7 +172,10 @@ class FinalNavigation(State):
         super(FinalNavigation, self).__init__("FinalNavigation")
 
     def entry(self, machine):
-        pass
+        machine.pub_speed(0.0)
 
     def exit(self, machine):
+        pass
+
+    def reset_params(self):
         pass

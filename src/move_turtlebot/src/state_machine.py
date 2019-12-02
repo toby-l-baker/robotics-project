@@ -1,7 +1,8 @@
 
 import rospy
 from geometry_msgs.msg import Twist, PoseStamped, PoseWithCovarianceStamped
-from std_msgs.msg import String
+from std_msgs.msg import String, Empty, Float64
+from kobuki_msgs.msg import BumperEvent
 
 from states import *
 
@@ -61,6 +62,16 @@ class StateMachine():
         meta_sub_topic = rospy.get_param("~meta_sub_topic")
         self.meta_sub = rospy.Subscriber(meta_sub_topic, String, self.meta_callback)
 
+        # Bumper topic info
+        bumper_sub_topic = rospy.get_param("~bumper_sub_topic")
+        self.bumper_sub = rospy.Subscriber(bumper_sub_topic, BumperEvent, self.bumper_callback)
+
+        # Reset parameters
+        self.reset_sub = rospy.Subscriber("reset", Empty, self.reset_params)
+
+        speed_pub_topic = rospy.get_param("~speed_topic")
+        self.speed_pub = rospy.Publisher(speed_pub_topic, Float64, queue_size=1)
+
         rate = rospy.Rate(30)
 
         while not rospy.is_shutdown():
@@ -83,6 +94,9 @@ class StateMachine():
     def pub_motors(self, twist=Twist()):
         self.motor_pub.publish(twist)
 
+    def pub_speed(self, speed):
+        self.speed_pub.publish(Float64(speed))
+
     def get_robot_proximity(self):
         """
         Returns the proximity of this robot and the other robot
@@ -96,7 +110,7 @@ class StateMachine():
         Starts the exchange package process
         """
         # TODO: implement
-        pass
+        self.pub_speed(0.1)
 
     """
     CALLBACKS
@@ -129,3 +143,13 @@ class StateMachine():
 
     def package_callback(self, msg):
         self.package_owner = msg.data
+
+    def bumper_callback(self, msg):
+        if not self.state.name == "FollowerAlign":
+            return
+        self.next_state = ExchangePackage()
+
+    def reset_params(self, msg):
+        self.state.reset_params()
+        if self.next_state:
+            self.next_state.reset_params()

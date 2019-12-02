@@ -3,6 +3,7 @@
 import tf
 import rospy
 from geometry_msgs.msg import Twist, Pose, PoseStamped
+from std_msgs.msg import Empty, Float64
 import numpy as np
 import tf.transformations as tft
 
@@ -31,16 +32,18 @@ class TurtlebotFollower:
         self.camera_frame = self.turtlebot_name + "/camera_rgb_frame"
 
         """Setup scaling constants"""
-        self.x_scale = 1.3
-        self.y_scale = 1.0
-        self.x_desired = 0.4
+        self.x_scale = rospy.get_param("~x_gain")
+        self.y_scale = rospy.get_param("~y_gain")
+        self.x_desired = rospy.get_param("~target_distance")
         self.y_desired = 0.0
         self.x_vel_max = 0.5
         self.z_ang_max = 1.0
 
+        self.default_speed = 0.0
+
         """Setup the tf transformer with 5 second cache time"""
-        self.cache_time = float(rospy.get_param("~cache_time"))
-        self.transformer = tf.TransformListener(cache_time=rospy.Duration(self.cache_time))
+        self.cache_time = rospy.get_param("~cache_time")
+        self.transformer = tf.TransformListener()
         rospy.sleep(2)
 
         """Setup cmd_vel_mux publisher"""
@@ -48,10 +51,28 @@ class TurtlebotFollower:
         cmd_vel_topic = rospy.get_param("~follower_motor_cmds")
         self.cmd_vel_pub = rospy.Publisher(cmd_vel_topic, Twist, queue_size=1)
 
+        """Setup cmd_vel_mux publisher"""
+        # TODO: Allow for remapping
+        reset_topic = "follower/reset"
+        self.reset_sub = rospy.Subscriber(reset_topic, Empty, self.reset_params)
+
+        """Speed value topic """
+        speed_sub_topic = rospy.get_param("~speed_topic")
+        self.speed_sub = rospy.Subscriber(speed_sub_topic, Float64, self.speed_callback)
+
         period = rospy.Duration(0.05)
         self.timer = rospy.Timer(period, self.update_velocity, False)
 
         rospy.spin()
+
+    def reset_params(self, msg):
+        self.x_desired = rospy.get_param("~target_distance")
+        self.x_scale = rospy.get_param("~x_gain")
+        self.y_scale = rospy.get_param("~y_gain")
+        self.cache_time = rospy.get_param("~cache_time")
+
+    def speed_callback(self, msg):
+        self.default_speed = msg.data
 
     def update_velocity(self, event):
         """Compute cmd_vel messages and publish"""
@@ -60,8 +81,11 @@ class TurtlebotFollower:
             current_time = rospy.Time.now()
 
             if current_time.secs - latest_time.secs > self.cache_time:
-                self.cmd_vel_pub.publish(Twist())
-                print("err1 {}".format(current_time.secs - latest_time.secs))
+                """Publish default speed"""
+                command = Twist()
+                command.linear.x = self.default_speed
+                self.cmd_vel_pub.publish(command)
+                print("Out of date transform by {} seconds".format(current_time.secs - latest_time.secs))
                 return
 
             trans, rot = self.transformer.lookupTransform(self.turtlebot_frame,

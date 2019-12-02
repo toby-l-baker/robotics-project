@@ -2,6 +2,7 @@
     <!-- State machine node -->
     <arg name="move_base_topic" default="move_base_cmds"/>
     <arg name="follower_topic" default="follower_cmds"/>
+    <arg name="speed_topic" default="follower_speed"/>
 
     <node name="state_machine" pkg="move_turtlebot" type="state_machine_node.py">
         <!-- Common topics between robots -->
@@ -15,15 +16,19 @@
         <param name="move_base_sub_topic" value="$(arg move_base_topic)"/>
         <param name="follower_sub_topic" value="$(arg follower_topic)"/>
         <param name="meta_sub_topic" value="meta"/>
+        <param name="bumper_sub_topic" value="mobile_base/events/bumper"/>
+        <param name="speed_topic" value="$(arg speed_topic)"/>
 
         <param name="required_proximity" value="1"/>
         <param name="initial_proximity" value="1"/>
         <param name="required_duration" value="1"/>
         <param name="exchange_proximity" value="1"/>
+        <param name="exchange_duration" value="5"/>
     </node>
 
     <!-- Other launch files to start -->
     <include file="$(find move_turtlebot)/launch/follower.launch">
         <arg name="follower_topic" value="$(arg follower_topic)"/>
+        <arg name="speed_topic" value="$(arg speed_topic)"/>
     </include>
 </launch>
