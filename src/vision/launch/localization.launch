@@ -11,7 +11,7 @@ Outputs the inferred pose to `/amcl_pose` topic
   <!-- SENSOR NODE PACKAGE - 3D sensor -->
   <arg name="3d_sensor" default="$(env TURTLEBOT_3D_SENSOR)"/>  <!-- r200, kinect, asus_xtion_pro -->
 
-  <include file="$(find turtlebot_bringup)/launch/3dsensor.launch">
+  <include file="$(find vision)/launch/3dsensor.launch">
     <arg name="rgb_processing" value="false" />
     <arg name="depth_registration" value="false" />
     <arg name="depth_processing" value="false" />
@@ -23,7 +23,9 @@ Outputs the inferred pose to `/amcl_pose` topic
 
   <!-- Map server -->
   <arg name="map_file" default="$(env TURTLEBOT_MAP_FILE)"/>
-  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
+	<param name="frame_id" value="red/map"/>
+  </node>
 
   <!-- AMCL localization -->
   <arg name="custom_amcl_launch_file" default="$(find vision)/launch/amcl.launch.xml"/>

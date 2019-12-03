@@ -1,14 +1,14 @@
 <launch>
-  <arg name="use_map_topic"   default="false"/>
+  <arg name="use_map_topic"   default="true"/>
   <arg name="scan_topic"      default="scan"/> 
   <arg name="initial_pose_x"  default="0.0"/>
   <arg name="initial_pose_y"  default="0.0"/>
   <arg name="initial_pose_a"  default="0.0"/>
-  <arg name="odom_frame_id"   default="odom"/>
-  <arg name="base_frame_id"   default="base_footprint"/>
-  <arg name="global_frame_id" default="map"/>
+  <arg name="odom_frame_id"   default="$(env ROS_NAMESPACE)/odom"/>
+  <arg name="base_frame_id"   default="$(env ROS_NAMESPACE)/base_footprint"/>
+  <arg name="global_frame_id" default="$(env ROS_NAMESPACE)/map"/>
 
-  <node pkg="amcl" type="amcl" name="amcl">
+  <node pkg="amcl" type="amcl" name="amcl" output="screen">
     <param name="use_map_topic"             value="$(arg use_map_topic)"/>
     <!-- Publish scans from best pose at a max of 10 Hz -->
     <param name="odom_model_type"           value="diff"/>
