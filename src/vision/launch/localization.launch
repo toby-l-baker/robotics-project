@@ -24,7 +24,7 @@ Outputs the inferred pose to `/amcl_pose` topic
   <!-- Map server -->
   <arg name="map_file" default="$(env TURTLEBOT_MAP_FILE)"/>
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
-	<param name="frame_id" value="red/map"/>
+	<param name="frame_id" value="$(env ROS_NAMESPACE)/map"/>
   </node>
 
   <!-- AMCL localization -->
