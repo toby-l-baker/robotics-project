@@ -20,10 +20,9 @@ This project designed to act as a proof of concept for package transfer between 
 
 # Launch startup
 
-- start turtlebot bringup minimal
-- start amcl localization (vision localization.launch) with map (robot\_lab2.yaml)
-- start ar tag localization (vision ar_tag_kinect_track.launch)
-- start rviz visualization (turtlebot_rviz_launchers view_navigation.launch)
+```bash
+roslaunch move_turtlebot init.launch
+```
 
 # State Machine design
 
