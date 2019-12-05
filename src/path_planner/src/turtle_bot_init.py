@@ -6,39 +6,53 @@ from geometry_msgs.msg import PoseStamped as PS
 import time
 
 Node = "path_planner"
+Map = "/map"
+
 
 class Turtlebot:
 	def __init__(self, name, queue_size=1):
 		# name is all lowercase color of turtlebot
 		self.name = name
-		self.publish_topic = '/' + self.name + '/move_base_simple/goal/'
+		self.publish_topic = '/' + self.name + '/move_base_simple/goal'
 		self.queue_size=queue_size
 		self.publisher = rospy.Publisher(self.publish_topic, PS, queue_size=queue_size)
 
-
+		self.x = None
+		self.y = None
+		self.theta = None
 
 		self.tf = tf.TransformListener()
-		self.tf_topic = '/' + self.name + '/base_link' 
-		rospy.Subscriber(self.tf_topic , PS, self.pos_callback) 
+		self.frame = '/' + self.name + '/base_link'
 
-	def pos_callback(data):
-		if self.tf.frameExists(self.tf_topic) and self.tf.frameExists("/map"):
-			t = self.tf.getLatestCommonTime(self.tf_topic, "/map")
-			pos, q = self.tf.lookupTransform(self.tf_topic, "/map", t)
+		angle = 0
+		while self.x == None or self.y == None or self.theta == None:
+			self.position()
+
+
+	def position(self):
+		try:
+			now = rospy.Time.now()
 			
-			self.x = pos.x
-			self.y = pos.y
-			euler = tf.transformations.euler_from_quaternion([q.x, q.y, q.z, q.w])
+			self.tf.waitForTransform(Map, self.frame, now, rospy.Duration(0.5))
+			# t = self.tf.getLatestCommonTime("/black/base_link", "/map")
+
+			pos, q = self.tf.lookupTransform(Map, self.frame, now)
+			
+			self.x = pos[0]
+			self.y = pos[1]
+			euler = tf.transformations.euler_from_quaternion(q)
 			self.theta = euler[2]
+		except Exception as e:
+			print(e)
 
 	def move(self, x, y, theta):
 		pose = xytheta_to_pose(x, y, theta)
-		self.pub.publish(pose)
+		self.publisher.publish(pose)
 		
 
 
 def xytheta_to_pose(x, y, theta):
-	pose = PoseStamped()
+	pose = PS()
 	pose.header.stamp = rospy.Time.now()
 	pose.header.frame_id = "map"
 	pose.pose.position.x = x
@@ -56,10 +70,18 @@ def xytheta_to_pose(x, y, theta):
 
 def main():
 	rospy.init_node(Node, anonymous=True)
-	red = Turtlebot('black')
-	while not rospy.is_shutdown():
-		print(red.x, red.y, red.theta)
-		time.sleep(1)
+	# black = Turtlebot('black')
+	red = Turtlebot('red')
+	
+	red.move(0, 0, 0)
+	# black.move(0, 0, 0)
+
+	# while not rospy.is_shutdown():
+	# 	tb.position()
+	# 	print(tb.x, tb.y, tb.theta)
+		
+		
+		
 	
 
 
