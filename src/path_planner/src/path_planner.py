@@ -3,13 +3,13 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from scipy.optimize import NonlinearConstraint
 
-D = 2.0
+D = 1
 
 
 master_start = (0, 0)
-master_goal = (5, 2)
-slave_start = (-1, -3)
-slave_goal = (4, -5)
+master_goal = (0, 1)
+slave_start = (1, 0)
+slave_goal = (1, 1)
 
 # master_start = (0, 0)
 # master_goal = (1, 0)
@@ -41,6 +41,20 @@ def dist_constraint(x, d):
 	x2 = np.array(x[2:4])
 	return dist(x1, x2) - d
 
+def non_linear_dist_constraint(x):
+	# All points are of form (x,y)
+	# x is a flattened list of:
+	# 		[drop start, drop end]
+	# d is the distance needed for the drop
+	# equality: dist(drop_start, drop_end) = d
+	x1 = np.array(x[0:2])
+	x2 = np.array(x[2:4])
+	return dist(x1, x2)
+def non_linear_jacobian_constraint(x):
+	x_start = [x[0], x[1]]
+	x_goal = [x[2], x[3]]
+	return [x[0]-x[2], x[1]-x[3], x[0]-x[2], x[1]-x[3]] / dist(np.array(x_start), np.array(x_goal))
+
 def dist(p, q):
 	return np.linalg.norm(p - q)
 
@@ -51,7 +65,11 @@ def path_planner(master_start, master_goal, slave_start, slave_goal, drop_distan
 	X = points_to_list(drop_start, drop_end)
 	P = points_to_list(master_start, master_goal, slave_start, slave_goal)
 	cons = [{'type':'eq', 'fun':dist_constraint, 'args':[D]}]
-	ans = minimize(fun=total_dist, args=P, x0=X, constraints=cons)
+
+
+	nl_cons = NonlinearConstraint(non_linear_dist_constraint, drop_distance, drop_distance, jac=non_linear_jacobian_constraint)
+
+	ans = minimize(fun=total_dist, args=P, x0=X, constraints=nl_cons)
 	return ans
 
 def plot_path(master_start, master_goal, slave_start, slave_goal, drop_start, drop_end):
@@ -84,6 +102,7 @@ def main():
 	ans = path_planner(master_start, master_goal, slave_start, slave_goal, D)
 	start = ans.x[0:2]
 	end = ans.x[2:4]
+	print(dist(start, end))
 	print(ans)
 
 	
