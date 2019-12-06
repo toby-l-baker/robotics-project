@@ -2,7 +2,7 @@
 
 import rospy
 import sys
-from advanced_turtlebot_follower import TurtlebotFollower
+from naive_turtlebot_follower import TurtlebotFollower
 from geometry_msgs.msg import Twist
 import argparse
 
