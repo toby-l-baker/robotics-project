@@ -3,7 +3,8 @@
     <arg name="move_base_topic" default="move_base_cmds"/>
     <arg name="follower_topic" default="follower_cmds"/>
     <arg name="follower_error" default="follower_error"/>
-    <arg name="exchange_follower_topic" default="exchange_follower_cmds"/> <arg name="speed_topic" default="follower_speed"/>
+    <arg name="exchange_follower_topic" default="exchange_follower_cmds"/>
+    <arg name="speed_topic" default="follower_speed"/>
 
     <node name="state_machine" pkg="move_turtlebot" type="state_machine_node.py">
         <!-- Common topics between robots -->

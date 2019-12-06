@@ -2,11 +2,11 @@
     <arg name="follower_topic" default="follower_cmds"/>
     <arg name="speed_topic" default="follower_speed"/>
     <arg name="error_topic" default="follower_error"/>
-    <arg name="other_marker_frame" default="ar_marker_5"/>
-    <arg name="cache_time" default="5.0"/>
-    <arg name="target_distance" default="0.155"/>
-    <arg name="x_gain" default="0.35"/>
-    <arg name="y_gain" default="1.4"/>
+    <arg name="other_marker_frame" default="ar_marker_0"/>
+    <arg name="cache_time" default="3.0"/>
+    <arg name="target_distance" default="0.16"/>
+    <arg name="x_gain" default="0.45"/>
+    <arg name="y_gain" default="2.0"/>
     <!-- TODO replace with topic info from other robot -->
     <arg name="other_velocity" default="0.135"/>
 
@@ -20,6 +20,7 @@
         <param name="name" value="$(env ROS_NAMESPACE)"/>
         <param name="marker_frame_to_follow" value="$(arg other_marker_frame)"/>
         <param name="error_topic" value="$(arg error_topic)"/>
+        <param name="other_robot_twist_topic" value="/$(env OTHER_ROS_NAMESPACE)/mobile_base/commands/velocity"/>
 
         <param name="cache_time" value="$(arg cache_time)"/>
         <param name="target_distance" value="$(arg target_distance)"/>
