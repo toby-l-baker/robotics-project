@@ -27,7 +27,7 @@ class TurtlebotFollower:
 
         """Setup the names for the transform"""
         self.turtlebot_name = rospy.get_param("~name")
-        self.turtlebot_frame = "base_link"
+        self.turtlebot_frame = self.turtlebot_name + "/base_link"
         self.marker_frame = rospy.get_param("~marker_frame_to_follow")
         self.camera_frame = self.turtlebot_name + "/camera_rgb_frame"
 
@@ -35,7 +35,7 @@ class TurtlebotFollower:
         self.Kalpha = rospy.get_param("~Kalpha")
         self.Kbeta = rospy.get_param("~Kbeta")
         self.Krho = rospy.get_param("~Krho")
-        self.x_desired = rospy.get_param("~target_distance")
+        self.target_distance = rospy.get_param("~target_distance")
         self.target_velocity = 0.0
         self.y_desired = 0.0
         self.x_vel_max = 0.5
@@ -70,10 +70,11 @@ class TurtlebotFollower:
         rospy.spin()
 
     def reset_params(self, msg):
-        self.x_desired = rospy.get_param("~target_distance")
-        self.x_scale = rospy.get_param("~x_gain")
-        self.y_scale = rospy.get_param("~y_gain")
+        self.target_distance = rospy.get_param("~target_distance")
         self.cache_time = rospy.get_param("~cache_time")
+        self.Kalpha = rospy.get_param("~Kalpha")
+        self.Kbeta = rospy.get_param("~Kbeta")
+        self.Krho = rospy.get_param("~Krho")
 
     def speed_callback(self, msg):
         self.default_speed = msg.data
@@ -87,7 +88,7 @@ class TurtlebotFollower:
             if current_time.secs - latest_time.secs > self.cache_time:
                 """Publish default speed"""
                 command = Twist()
-                command.linear.x = self.default_speed
+                command.linear.x = 0.0
                 self.cmd_vel_pub.publish(command)
                 print("Out of date transform by {} seconds".format(current_time.secs - latest_time.secs))
                 return
@@ -95,25 +96,28 @@ class TurtlebotFollower:
             trans, rot = self.transformer.lookupTransform(self.turtlebot_frame,
                                                           self.marker_frame,
                                                           rospy.Time())
-            theta = tft.euler_from_quaternion(rot)
+            theta = -(tft.euler_from_quaternion(rot)[2] + np.pi / 2.0)
             x, y = trans[0], trans[1]
-            x_goal, y_goal = x - self.target_distance * np.cos(theta), y - self.target_distance * np.sin(theta), 
+            x_goal = x - self.target_distance * np.cos(theta)
+            y_goal = y - self.target_distance * np.sin(theta)
+
+            if x_goal < 0.0 and x_goal > -0.1:
+                # Clip x if past goal
+                x_goal = 0.0
+            if x_goal < 0.1:
+                # Clip y if close to goal
+                if y_goal < 0.1 and y_goal > -0.1:
+                    y_goal = 0.0
+
+                # Clip theta if close to goal
+                if theta < 0.30 and theta > -0.30:
+                    theta = 0.0 
 
             # Using control algorithm from https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/move_to_pose
             rho = np.sqrt(x_goal**2 + y_goal**2)
-            alpha = np.atan2(y, x) - theta
-            while alpha < -np.pi:
-                alpha += 2 * np.pi
-
-            while alpha > np.pi:
-                alpha -= 2 * np.pi
+            alpha = np.arctan2(y_goal, x_goal) - theta
 
             beta = - theta - alpha
-            while beta < -np.pi:
-                beta += 2 * np.pi
-
-            while beta > np.pi:
-                beta -= 2 * np.pi
 
             Kalpha = self.Kalpha
             Kbeta = self.Kbeta
@@ -121,6 +125,9 @@ class TurtlebotFollower:
 
             velocity = Krho * rho + self.target_velocity
             omega  = Kalpha * alpha + Kbeta * beta # TODO add target rotation velocity
+            print("\n\n\nAdvanced Follower\nCommand = ({}, {})".format(velocity, omega))
+            print("rho = {}, alpha = {}, beta = {}".format(rho, alpha, beta))
+            print("(x_goal, y_goal, theta) = ({}, {}, {})".format(x_goal, y_goal, theta))
 
             twist = Twist()
             twist.linear.x = velocity
