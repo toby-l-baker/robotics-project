@@ -89,7 +89,7 @@ class StateMachine():
         Transitions state if there is a next state
         Otherwise uses exit to check if next state is found
         """
-        print("State:", self.state.name)
+        print("  State: " + self.state.name)
         if self.next_state:
             self.state = self.next_state
             self.next_state = None
