@@ -6,9 +6,9 @@ from scipy.optimize import NonlinearConstraint
 D = 1
 
 
-master_start = (0, 0)
+master_start = (0, -1)
 master_goal = (0, 1)
-slave_start = (1, 0)
+slave_start = (1, -1)
 slave_goal = (1, 1)
 
 # master_start = (0, 0)
@@ -26,10 +26,10 @@ def total_dist(x, p):
 	x1 = np.array(x[0:2])
 	x2 = np.array(x[2:4])
 	p1 = np.array(p[0:2])
-	p2 = np.array(p[2:3])
+	p2 = np.array(p[2:4])
 	p3 = np.array(p[4:6])
 	p4 = np.array(p[6:8])
-	return dist(p1, x1) + dist(p3, x1) + dist(p2, x2) + dist(p4, x2)
+	return dist(p1, x1) + dist(p3, x1) + dist(p2, x2) + dist(p4, x2) + dist(x1,x2)
 
 def dist_constraint(x, d):
 	# All points are of form (x,y)
@@ -64,12 +64,13 @@ def path_planner(master_start, master_goal, slave_start, slave_goal, drop_distan
 	drop_end = [drop_start[0] + drop_distance, drop_start[1]]
 	X = points_to_list(drop_start, drop_end)
 	P = points_to_list(master_start, master_goal, slave_start, slave_goal)
-	cons = [{'type':'eq', 'fun':dist_constraint, 'args':[D]}]
+	#cons = [{'type':'eq', 'fun':dist_constraint, 'args':[D]}]
 
 
-	nl_cons = NonlinearConstraint(non_linear_dist_constraint, drop_distance, drop_distance, jac=non_linear_jacobian_constraint)
+	nl_cons = NonlinearConstraint(non_linear_dist_constraint, drop_distance, 100)
 
-	ans = minimize(fun=total_dist, args=P, x0=X, constraints=nl_cons)
+	ans = minimize(fun=total_dist, args=P, x0=X, method='trust-constr', constraints=nl_cons)
+	print(total_dist(ans.x,P))
 	return ans
 
 def plot_path(master_start, master_goal, slave_start, slave_goal, drop_start, drop_end):
@@ -103,7 +104,6 @@ def main():
 	start = ans.x[0:2]
 	end = ans.x[2:4]
 	print(dist(start, end))
-	print(ans)
 
 	
 	plot_path(master_start, master_goal, slave_start, slave_goal, start, end)
