@@ -4,25 +4,25 @@
     <arg name="error_topic" default="follower_error"/>
     <arg name="other_marker_frame" default="ar_marker_0"/>
     <arg name="cache_time" default="3.0"/>
-    <arg name="target_distance" default="0.16"/>
-    <arg name="x_gain" default="0.45"/>
-    <arg name="y_gain" default="2.0"/>
+    <arg name="target_distance" default="0.155"/>
 
-    <node name="follower" pkg="move_turtlebot" type="make_naive_turtlebot_follower.py">
+    <!-- TODO choose actual values -->
+    <arg name="Krho" default="0.5"/>
+    <arg name="Kalpha" default="0.9"/>
+    <arg name="Kbeta" default="-0.10"/>
+
+    <node name="follower" pkg="move_turtlebot" type="make_turtlebot_follower.py">
         <param name="follower_motor_cmds" value="$(arg follower_topic)"/>
         <param name="speed_topic" value="$(arg speed_topic)"/>
         <param name="name" value="$(env ROS_NAMESPACE)"/>
         <param name="marker_frame_to_follow" value="$(arg other_marker_frame)"/>
         <param name="error_topic" value="$(arg error_topic)"/>
-        <param name="other_robot_twist_topic" value="/$(env OTHER_ROS_NAMESPACE)/mobile_base/commands/velocity"/>
 
         <param name="cache_time" value="$(arg cache_time)"/>
         <param name="target_distance" value="$(arg target_distance)"/>
-        <param name="x_gain" value="$(arg x_gain)"/>
-        <param name="y_gain" value="$(arg y_gain)"/>
-        <param name="x_threshold" value="$(arg x_threshold)"/>
-        <param name="x_min_speed" value="$(arg x_min_speed)"/>
-        <param name="target_velocity" value="$(arg other_velocity)"/>
+        <param name="Krho" value="$(arg Krho)"/>
+        <param name="Kalpha" value="$(arg Kalpha)"/>
+        <param name="Kbeta" value="$(arg Kbeta)"/>
     </node>
 
 </launch>

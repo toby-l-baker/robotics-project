@@ -27,7 +27,7 @@ class TurtlebotFollower:
 
         """Setup the names for the transform"""
         self.turtlebot_name = rospy.get_param("~name")
-        self.turtlebot_frame = self.turtlebot_name + "/base_link"
+        self.turtlebot_frame = "base_link"
         self.marker_frame = rospy.get_param("~marker_frame_to_follow")
         self.camera_frame = self.turtlebot_name + "/camera_rgb_frame"
 
@@ -65,10 +65,6 @@ class TurtlebotFollower:
         speed_sub_topic = rospy.get_param("~speed_topic")
         self.speed_sub = rospy.Subscriber(speed_sub_topic, Float64, self.speed_callback)
 
-        """Other Robot twist topic"""
-        other_robot_twist_topic = rospy.get_param("~other_robot_twist_topic")
-        self.other_robot_twist_sub = rospy.Subscriber(other_robot_twist_topic, Twist, self.other_robot_twist_callback)
-
         period = rospy.Duration(0.05)
         self.timer = rospy.Timer(period, self.update_velocity, False)
 
@@ -85,12 +81,6 @@ class TurtlebotFollower:
 
     def speed_callback(self, msg):
         self.default_speed = msg.data
-
-    def other_robot_twist_callback(self, msg):
-        if msg.linear.x > 0:
-            self.target_velocity = msg.linear.x
-        else:
-            self.target_velocity = 0.0
 
     def update_velocity(self, event):
         """Compute cmd_vel messages and publish"""
@@ -132,6 +122,28 @@ class TurtlebotFollower:
             """Tells robot to stop"""
             self.cmd_vel_pub.publish(Twist())
             print("Exception occurred:", e)
+
+    def get_relative_velocity(self):
+        self.oldTime = self.newTime
+        self.newTime = rospy.get_time()
+        self.oldTransform = self.newTransform
+        try:
+            self.newTransform = self.tfBuffer.lookup_transform(self.camera_frame, self.marker_frame, rospy.Time())
+        except Exception as e:
+            print(e)
+        dx = (self.newTransform.transform.translation.x - self.oldTransform.transform.translation.x)
+        dy = (self.newTransform.transform.translation.y - self.oldTransform.transform.translation.y)
+        # dz_t = (self.newTransform.transform.angular.x - self.oldTransform.transform.angular.z)
+        dt = float(self.newTime - self.oldTime)
+
+        self.velocities[0, 1:] = self.velocities[0, :-1]
+        self.velocities[1, 1:] = self.velocities[1, :-1]
+        self.velocities[0, 0] = dx/dt
+        self.velocities[1, 0] = dy/dt
+
+        self.relative_vel = Twist()
+        self.relative_vel.linear.x = np.average(self.velocities[0,:])
+        self.relative_vel.linear.y = np.average(self.velocities[1,:])
 
     def transform_pose(self, pose, starting_frame, ending_frame):
 	try:

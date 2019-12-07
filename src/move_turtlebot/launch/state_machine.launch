@@ -3,7 +3,8 @@
     <arg name="move_base_topic" default="move_base_cmds"/>
     <arg name="follower_topic" default="follower_cmds"/>
     <arg name="follower_error" default="follower_error"/>
-    <arg name="exchange_follower_topic" default="exchange_follower_cmds"/> <arg name="speed_topic" default="follower_speed"/>
+    <arg name="exchange_follower_topic" default="exchange_follower_cmds"/>
+    <arg name="speed_topic" default="follower_speed"/>
 
     <node name="state_machine" pkg="move_turtlebot" type="state_machine_node.py">
         <!-- Common topics between robots -->
@@ -31,7 +32,7 @@
     </node>
 
     <!-- Other launch files to start -->
-    <include file="$(find move_turtlebot)/launch/follower.launch">
+    <include file="$(find move_turtlebot)/launch/advanced_follower.launch">
         <arg name="follower_topic" value="$(arg follower_topic)"/>
         <arg name="speed_topic" value="$(arg speed_topic)"/>
         <arg name="error_topic" value="$(arg follower_error)"/>

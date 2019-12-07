@@ -32,12 +32,11 @@ class TurtlebotFollower:
         self.camera_frame = self.turtlebot_name + "/camera_rgb_frame"
 
         """Setup scaling constants"""
-        self.x_scale = rospy.get_param("~x_gain")
-        self.y_scale = rospy.get_param("~y_gain")
-        self.x_desired = rospy.get_param("~target_distance")
-        self.x_threshold = rospy.get_param("~x_threshold")
-        self.x_min_speed = rospy.get_param("~x_min_speed")
-        self.target_velocity = rospy.get_param("~target_velocity")
+        self.Kalpha = rospy.get_param("~Kalpha")
+        self.Kbeta = rospy.get_param("~Kbeta")
+        self.Krho = rospy.get_param("~Krho")
+        self.target_distance = rospy.get_param("~target_distance")
+        self.target_velocity = 0.0
         self.y_desired = 0.0
         self.x_vel_max = 0.5
         self.z_ang_max = 1.0
@@ -65,32 +64,20 @@ class TurtlebotFollower:
         speed_sub_topic = rospy.get_param("~speed_topic")
         self.speed_sub = rospy.Subscriber(speed_sub_topic, Float64, self.speed_callback)
 
-        """Other Robot twist topic"""
-        other_robot_twist_topic = rospy.get_param("~other_robot_twist_topic")
-        self.other_robot_twist_sub = rospy.Subscriber(other_robot_twist_topic, Twist, self.other_robot_twist_callback)
-
         period = rospy.Duration(0.05)
         self.timer = rospy.Timer(period, self.update_velocity, False)
 
         rospy.spin()
 
     def reset_params(self, msg):
-        self.x_desired = rospy.get_param("~target_distance")
-        self.x_scale = rospy.get_param("~x_gain")
-        self.y_scale = rospy.get_param("~y_gain")
+        self.target_distance = rospy.get_param("~target_distance")
         self.cache_time = rospy.get_param("~cache_time")
-        self.x_threshold = rospy.get_param("~x_threshold")
-        self.x_min_speed = rospy.get_param("~x_min_speed")
-        self.target_velocity = rospy.get_param("~target_velocity")
+        self.Kalpha = rospy.get_param("~Kalpha")
+        self.Kbeta = rospy.get_param("~Kbeta")
+        self.Krho = rospy.get_param("~Krho")
 
     def speed_callback(self, msg):
         self.default_speed = msg.data
-
-    def other_robot_twist_callback(self, msg):
-        if msg.linear.x > 0:
-            self.target_velocity = msg.linear.x
-        else:
-            self.target_velocity = 0.0
 
     def update_velocity(self, event):
         """Compute cmd_vel messages and publish"""
@@ -101,7 +88,7 @@ class TurtlebotFollower:
             if current_time.secs - latest_time.secs > self.cache_time:
                 """Publish default speed"""
                 command = Twist()
-                command.linear.x = self.default_speed
+                command.linear.x = 0.0
                 self.cmd_vel_pub.publish(command)
                 print("Out of date transform by {} seconds".format(current_time.secs - latest_time.secs))
                 return
@@ -109,25 +96,53 @@ class TurtlebotFollower:
             trans, rot = self.transformer.lookupTransform(self.turtlebot_frame,
                                                           self.marker_frame,
                                                           rospy.Time())
+            theta = -(tft.euler_from_quaternion(rot)[2] + np.pi / 2.0)
             x, y = trans[0], trans[1]
+            x_goal = x - self.target_distance * np.cos(theta)
+            y_goal = y - self.target_distance * np.sin(theta)
+
+            if x_goal < 0.0 and x_goal > -0.1:
+                # Clip x if past goal
+                x_goal = 0.0
+            if x_goal < 0.1:
+                # Clip y if close to goal
+                if y_goal < 0.1 and y_goal > -0.1:
+                    y_goal = 0.0
+
+                # Clip theta if close to goal
+                if theta < 0.30 and theta > -0.30:
+                    theta = 0.0 
+
+            # Using control algorithm from https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/move_to_pose
+            rho = np.sqrt(x_goal**2 + y_goal**2)
+            alpha = np.arctan2(y_goal, x_goal) - theta
+
+            beta = - theta - alpha
+
+            Kalpha = self.Kalpha
+            Kbeta = self.Kbeta
+            Krho = self.Krho
+
+            velocity = Krho * rho + self.target_velocity
+            omega  = Kalpha * alpha + Kbeta * beta # TODO add target rotation velocity
+            print("\n\n\nAdvanced Follower\nCommand = ({}, {})".format(velocity, omega))
+            print("rho = {}, alpha = {}, beta = {}".format(rho, alpha, beta))
+            print("(x_goal, y_goal, theta) = ({}, {}, {})".format(x_goal, y_goal, theta))
+
             twist = Twist()
-            error = x - self.x_desired
-            self.error_pub.publish(Float64(error))
-            twist.linear.x = self.target_velocity + self.x_scale * error
-            if x - self.x_desired > self.x_threshold:
-                twist.linear.x += self.x_min_speed
+            twist.linear.x = velocity
             if twist.linear.x > self.x_vel_max:
                 twist.linear.x = self.x_vel_max
             elif twist.linear.x < -self.x_vel_max:
                 twist.linear.x = -self.x_vel_max
 
-            twist.angular.z = self.y_scale * (y - self.y_desired)
+            twist.angular.z = omega
             if twist.angular.z > self.z_ang_max:
                 twist.angular.z = self.z_ang_max
             elif twist.angular.z < -self.z_ang_max:
                 twist.angular.z = -self.z_ang_max
-
             self.cmd_vel_pub.publish(twist)
+
         except tf.Exception as e:
             """Tells robot to stop"""
             self.cmd_vel_pub.publish(Twist())
