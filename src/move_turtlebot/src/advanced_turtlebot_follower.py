@@ -130,7 +130,7 @@ class TurtlebotFollower:
         if error < 0:
             """Skip negative returns - indicates error with tf"""
             return
-        if error < 0.05 and self.mode == state_names.FOLLOW_ALIGN
+        if error < 0.05 and self.mode == state_names.FOLLOW_ALIGN:
             self.mode = state_names.FOLLOW_EXCHANGE
             self.mechanism.deliver()
             self.exchange_start = rospy.Time.now()
