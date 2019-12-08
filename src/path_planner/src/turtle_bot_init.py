@@ -6,12 +6,14 @@ from geometry_msgs.msg import PoseStamped as PS
 import time
 
 Node = "path_planner"
-Map = "/map"
 
+def Test():
+	print("Works prettry good")
 
 class Turtlebot:
 	def __init__(self, name, queue_size=1):
 		# name is all lowercase color of turtlebot
+		self.map = "/map"
 		self.name = name
 		self.publish_topic = '/' + self.name + '/move_base_simple/goal'
 		self.queue_size=queue_size
@@ -28,15 +30,17 @@ class Turtlebot:
 		while self.x == None or self.y == None or self.theta == None:
 			self.position()
 
-
+	# Gets position of Turtlebot
 	def position(self):
+		# Pose published on "amcl_pose"
+		# TODO: make this a callback
 		try:
 			now = rospy.Time.now()
 			
-			self.tf.waitForTransform(Map, self.frame, now, rospy.Duration(0.5))
-			# t = self.tf.getLatestCommonTime("/black/base_link", "/map")
+			self.tf.waitForTransform(self.map, self.frame, now, rospy.Duration(2.0))
+			# t = self.tf.getLatestCommonTime(self.frame, "/map")
 
-			pos, q = self.tf.lookupTransform(Map, self.frame, now)
+			pos, q = self.tf.lookupTransform(self.map, self.frame, rospy.Time())
 			
 			self.x = pos[0]
 			self.y = pos[1]
@@ -44,13 +48,13 @@ class Turtlebot:
 			self.theta = euler[2]
 		except Exception as e:
 			print(e)
-
+	# Moves turtlebot to given x,y position with heading theta
 	def move(self, x, y, theta):
 		pose = xytheta_to_pose(x, y, theta)
 		self.publisher.publish(pose)
 		
 
-
+# Turns an x, y, theta coordinate into a pose
 def xytheta_to_pose(x, y, theta):
 	pose = PS()
 	pose.header.stamp = rospy.Time.now()
@@ -68,23 +72,19 @@ def xytheta_to_pose(x, y, theta):
 
 
 
-def main():
-	rospy.init_node(Node, anonymous=True)
-	# black = Turtlebot('black')
-	red = Turtlebot('red')
-	
-	red.move(0, 0, 0)
-	# black.move(0, 0, 0)
+# def main():
+# 	rospy.init_node(Node, anonymous=True)
+# 	black = Turtlebot('black')
+# 	green = Turtlebot('green')
+# 	print(black.x, black.y)
+# 	print(green.x, green.y)
+# 	# red.move(0, 0, 0)
+# 	# black.move(0, 0, 0)
 
-	# while not rospy.is_shutdown():
-	# 	tb.position()
-	# 	print(tb.x, tb.y, tb.theta)
+# 	# while not rospy.is_shutdown():
+# 	# 	tb.position()
+# 	# 	print(tb.x, tb.y, tb.theta)
 		
-		
-		
-	
 
-
-
-if __name__ == "__main__":
-	main()
+# if __name__ == "__main__":
+# 	main()
