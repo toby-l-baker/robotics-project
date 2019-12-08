@@ -7,7 +7,7 @@
     <!-- Tuned values -->
     <arg name="cache_time" default="2.0"/>
     <arg name="target_distance" default="0.155"/>
-    <arg name="duration" default="2.0"/>
+    <arg name="duration" default="1.0"/>
     <arg name="Krho" default="0.7"/>
     <arg name="Kalpha" default="0.9"/>
     <arg name="Kbeta" default="-0.15"/>
@@ -24,6 +24,8 @@
         <param name="Kalpha" value="$(arg Kalpha)"/>
         <param name="Kbeta" value="$(arg Kbeta)"/>
         <param name="duration" value="$(arg duration)"/>
+
+        <param name="pin_num" value="7"/>
 
         <param name="state_topic" value="$(arg state_topic)"/>
         <param name="ack_info_topic" value="$(arg ack_info_topic)"/>

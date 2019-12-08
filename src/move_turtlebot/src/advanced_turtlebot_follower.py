@@ -7,6 +7,7 @@ from std_msgs.msg import Empty, Float64, String
 import numpy as np
 import tf.transformations as tft
 import state_names
+from Mechanism import Mechanism
 
 def vector(obj):
     result = []
@@ -31,6 +32,8 @@ class TurtlebotFollower:
         self.turtlebot_frame = self.turtlebot_name + "/base_link"
         self.marker_frame = rospy.get_param("~marker_frame_to_follow")
         self.camera_frame = self.turtlebot_name + "/camera_rgb_frame"
+        """ Initialize the mechanism """
+        self.init_mechanism(rospy.get_param("~pin_num"))
 
         """Setup more state"""
         self.i = 0
@@ -82,6 +85,10 @@ class TurtlebotFollower:
 
         rospy.spin()
 
+    def init_mechanism(self, pin):
+        self.mechanism = Mechanism(pin)
+        self.mechanism.catch()
+
     def enable(self):
         """Sets follower to be enabled"""
         if self.enabled:
@@ -89,12 +96,14 @@ class TurtlebotFollower:
         self.enabled = True
         self.mode = state_names.FOLLOW_ALIGN
         self.exchange_start = None
+        self.mechanism.catch()
         return "ACK enabled"
 
     def disable(self):
         self.enabled = False
         self.mode = state_names.FOLLOW_NULL
         self.exchange_start = None
+        self.mechanism.catch()
         return "ACK disabled"
 
     def reset_params(self, msg):
@@ -123,6 +132,7 @@ class TurtlebotFollower:
             return
         if error < 0.05 and self.mode == state_names.FOLLOW_ALIGN
             self.mode = state_names.FOLLOW_EXCHANGE
+            self.mechanism.deliver()
             self.exchange_start = rospy.Time.now()
 
         if self.mode == state_names.FOLLOW_EXCHANGE:
