@@ -56,15 +56,28 @@ class TurtlebotFollower:
         error_topic = rospy.get_param("~error_topic")
         self.error_pub = rospy.Publisher(error_topic, Float64, queue_size=1)
 
-        """Setup cmd_vel_mux publisher"""
+        """Setup reset subscriber to tune parameters more easily"""
         reset_topic = "follower/reset"
         self.reset_sub = rospy.Subscriber(reset_topic, Empty, self.reset_params)
+
+        """Other Robot twist topic"""
+        other_robot_twist_topic = rospy.get_param("~other_robot_twist_topic")
+        self.other_robot_twist_sub = rospy.Subscriber(other_robot_twist_topic, Twist, self.other_robot_twist_callback)
+
+        """State topic subscriber"""
+        state_topic = rospy.get_param("~state_topic")
+        self.state_sub = rospy.Subscriber(state_topic, String, self.state_callback)
+
+        """ack info topic publisher"""
+        ack_info_topic = rospy.get_param("~ack_info_topic")
+        self.ack_info_pub = rospy.Publisher(ack_info_topic, String, queue_size=1)
 
         """Speed value topic """
         speed_sub_topic = rospy.get_param("~speed_topic")
         self.speed_sub = rospy.Subscriber(speed_sub_topic, Float64, self.speed_callback)
 
         period = rospy.Duration(0.05)
+        self.i = 0
         self.timer = rospy.Timer(period, self.update_velocity, False)
 
         rospy.spin()
@@ -124,10 +137,14 @@ class TurtlebotFollower:
             Krho = self.Krho
 
             velocity = Krho * rho + self.target_velocity
-            omega  = Kalpha * alpha + Kbeta * beta # TODO add target rotation velocity
-            print("\n\n\nAdvanced Follower\nCommand = ({}, {})".format(velocity, omega))
-            print("rho = {}, alpha = {}, beta = {}".format(rho, alpha, beta))
-            print("(x_goal, y_goal, theta) = ({}, {}, {})".format(x_goal, y_goal, theta))
+            omega  = Kalpha * alpha + Kbeta * beta # TODO consider adding target rotation velocity
+            if self.i == 3:
+                print("\n\n\nAdvanced Follower\nCommand = ({}, {})".format(velocity, omega))
+                print("rho = {}, alpha = {}, beta = {}".format(rho, alpha, beta))
+                print("(x_goal, y_goal, theta) = ({}, {}, {})".format(x_goal, y_goal, theta))
+                self.i = 0
+            else:
+                self.i += 1
 
             twist = Twist()
             twist.linear.x = velocity
@@ -147,6 +164,12 @@ class TurtlebotFollower:
             """Tells robot to stop"""
             self.cmd_vel_pub.publish(Twist())
             print("Exception occurred:", e)
+
+    def other_robot_twist_callback(self, msg):
+        if msg.linear.x > 0:
+            self.target_velocity = msg.linear.x
+        else:
+            self.target_velocity = 0.0
 
     def transform_pose(self, pose, starting_frame, ending_frame):
 	try:
