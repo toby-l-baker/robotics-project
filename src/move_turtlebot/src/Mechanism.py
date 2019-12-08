@@ -17,6 +17,7 @@ class Mechanism:
 
     def deliver(self):
         try:
+            print("Mechanism.deliver()")
             self.p.ChangeDutyCycle(self.dc_deliver)
         except Exception as e:
             print("Got exception {}".format(e))
@@ -25,6 +26,7 @@ class Mechanism:
 
     def level(self):
         try:
+            print("Mechanism.level()")
             self.p.ChangeDutyCycle(self.dc_level)
         except Exception as e:
             print("Got exception {}".format(e))
@@ -33,6 +35,7 @@ class Mechanism:
 
     def catch(self):
         try:
+            print("Mechanism.catch()")
             self.p.ChangeDutyCycle(self.dc_catch)
         except Exception as e:
             print("Got exception {}".format(e))
