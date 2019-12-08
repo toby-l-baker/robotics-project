@@ -3,9 +3,10 @@
 import tf
 import rospy
 from geometry_msgs.msg import Twist, Pose, PoseStamped
-from std_msgs.msg import Empty, Float64
+from std_msgs.msg import Empty, Float64, String
 import numpy as np
 import tf.transformations as tft
+import state_names
 
 def vector(obj):
     result = []
@@ -31,30 +32,41 @@ class TurtlebotFollower:
         self.marker_frame = rospy.get_param("~marker_frame_to_follow")
         self.camera_frame = self.turtlebot_name + "/camera_rgb_frame"
 
+        """Setup more state"""
+        self.i = 0
+        self.enabled = False
+        self.mode = state_names.FOLLOW_NULL
+        self.exchange_start = None
+
         """Setup scaling constants"""
         self.Kalpha = rospy.get_param("~Kalpha")
         self.Kbeta = rospy.get_param("~Kbeta")
         self.Krho = rospy.get_param("~Krho")
         self.target_distance = rospy.get_param("~target_distance")
+        self.duration = rospy.Duration(rospy.get_param("~duration"))
         self.target_velocity = 0.0
         self.y_desired = 0.0
         self.x_vel_max = 0.5
         self.z_ang_max = 1.0
-
-        self.default_speed = 0.0
 
         """Setup the tf transformer with 5 second cache time"""
         self.cache_time = rospy.get_param("~cache_time")
         self.transformer = tf.TransformListener()
         rospy.sleep(2)
 
+        # Publishers
         """Setup cmd_vel_mux publisher"""
         cmd_vel_topic = rospy.get_param("~follower_motor_cmds")
         self.cmd_vel_pub = rospy.Publisher(cmd_vel_topic, Twist, queue_size=1)
 
-        """Setup error info publisher"""
-        error_topic = rospy.get_param("~error_topic")
-        self.error_pub = rospy.Publisher(error_topic, Float64, queue_size=1)
+        """ack info topic publisher"""
+        ack_info_topic = rospy.get_param("~ack_info_topic")
+        self.ack_info_pub = rospy.Publisher(ack_info_topic, String, queue_size=1)
+
+        # Subscribers
+        """State topic subscriber"""
+        state_topic = rospy.get_param("~state_topic")
+        self.state_sub = rospy.Subscriber(state_topic, String, self.state_callback)
 
         """Setup reset subscriber to tune parameters more easily"""
         reset_topic = "follower/reset"
@@ -64,35 +76,63 @@ class TurtlebotFollower:
         other_robot_twist_topic = rospy.get_param("~other_robot_twist_topic")
         self.other_robot_twist_sub = rospy.Subscriber(other_robot_twist_topic, Twist, self.other_robot_twist_callback)
 
-        """State topic subscriber"""
-        state_topic = rospy.get_param("~state_topic")
-        self.state_sub = rospy.Subscriber(state_topic, String, self.state_callback)
-
-        """ack info topic publisher"""
-        ack_info_topic = rospy.get_param("~ack_info_topic")
-        self.ack_info_pub = rospy.Publisher(ack_info_topic, String, queue_size=1)
-
-        """Speed value topic """
-        speed_sub_topic = rospy.get_param("~speed_topic")
-        self.speed_sub = rospy.Subscriber(speed_sub_topic, Float64, self.speed_callback)
-
+        # Timer
         period = rospy.Duration(0.05)
-        self.i = 0
-        self.timer = rospy.Timer(period, self.update_velocity, False)
+        self.timer = rospy.Timer(period, self.run, False)
 
         rospy.spin()
 
+    def enable(self):
+        """Sets follower to be enabled"""
+        if self.enabled:
+            return "ACK already enabled"
+        self.enabled = True
+        self.mode = state_names.FOLLOW_ALIGN
+        self.exchange_start = None
+        return "ACK enabled"
+
+    def disable(self):
+        self.enabled = False
+        self.mode = state_names.FOLLOW_NULL
+        self.exchange_start = None
+        return "ACK disabled"
+
     def reset_params(self, msg):
+        self.duration = rospy.Duration(rospy.get_param("~duration"))
         self.target_distance = rospy.get_param("~target_distance")
         self.cache_time = rospy.get_param("~cache_time")
         self.Kalpha = rospy.get_param("~Kalpha")
         self.Kbeta = rospy.get_param("~Kbeta")
         self.Krho = rospy.get_param("~Krho")
 
-    def speed_callback(self, msg):
-        self.default_speed = msg.data
+    def state_callback(self, msg):
+        if msg.data == "Follow":
+            res = self.enable()
+            self.ack_info_pub.publish(res)
+        else:
+            res = self.disable()
+            self.ack_info_pub.publish(res)
 
-    def update_velocity(self, event):
+    def run(self, event):
+        if not self.enabled:
+            return
+
+        error = self.update_velocity()
+        if error < 0:
+            """Skip negative returns - indicates error with tf"""
+            return
+        if error < 0.05 and self.mode == state_names.FOLLOW_ALIGN
+            self.mode = state_names.FOLLOW_EXCHANGE
+            self.exchange_start = rospy.Time.now()
+
+        if self.mode == state_names.FOLLOW_EXCHANGE:
+            """Check time"""
+            if rospy.Time.now() - self.exchange_start > self.duration:
+                self.ack_info_pub.publish("DONE")
+            else:
+                self.ack_info_pub.publish("EXCHANGE")
+
+    def update_velocity(self):
         """Compute cmd_vel messages and publish"""
         try:
             latest_time = self.transformer.getLatestCommonTime(self.turtlebot_frame, self.marker_frame)
@@ -104,7 +144,7 @@ class TurtlebotFollower:
                 command.linear.x = 0.0
                 self.cmd_vel_pub.publish(command)
                 print("Out of date transform by {} seconds".format(current_time.secs - latest_time.secs))
-                return
+                return -1
 
             trans, rot = self.transformer.lookupTransform(self.turtlebot_frame,
                                                           self.marker_frame,
@@ -129,15 +169,11 @@ class TurtlebotFollower:
             # Using control algorithm from https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/move_to_pose
             rho = np.sqrt(x_goal**2 + y_goal**2)
             alpha = np.arctan2(y_goal, x_goal) - theta
-
             beta = - theta - alpha
 
-            Kalpha = self.Kalpha
-            Kbeta = self.Kbeta
-            Krho = self.Krho
+            velocity = self.Krho * rho + self.target_velocity
+            omega  = self.Kalpha * alpha + self.Kbeta * beta # TODO consider adding target rotation velocity
 
-            velocity = Krho * rho + self.target_velocity
-            omega  = Kalpha * alpha + Kbeta * beta # TODO consider adding target rotation velocity
             if self.i == 3:
                 print("\n\n\nAdvanced Follower\nCommand = ({}, {})".format(velocity, omega))
                 print("rho = {}, alpha = {}, beta = {}".format(rho, alpha, beta))
@@ -147,23 +183,18 @@ class TurtlebotFollower:
                 self.i += 1
 
             twist = Twist()
-            twist.linear.x = velocity
-            if twist.linear.x > self.x_vel_max:
-                twist.linear.x = self.x_vel_max
-            elif twist.linear.x < -self.x_vel_max:
-                twist.linear.x = -self.x_vel_max
-
-            twist.angular.z = omega
-            if twist.angular.z > self.z_ang_max:
-                twist.angular.z = self.z_ang_max
-            elif twist.angular.z < -self.z_ang_max:
-                twist.angular.z = -self.z_ang_max
+            twist.linear.x = max(min(velocity, self.x_vel_max), -self.x_vel_max)
+            twist.angular.z = max(min(omega, self.z_ang_max), -self.z_ang_max)
             self.cmd_vel_pub.publish(twist)
+
+            return x_goal
 
         except tf.Exception as e:
             """Tells robot to stop"""
             self.cmd_vel_pub.publish(Twist())
             print("Exception occurred:", e)
+
+            return -1
 
     def other_robot_twist_callback(self, msg):
         if msg.linear.x > 0:

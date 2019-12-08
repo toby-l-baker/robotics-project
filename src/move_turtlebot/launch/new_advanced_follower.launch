@@ -1,0 +1,33 @@
+<launch>
+    <arg name="follower_topic" default="cmd_vel_mux/input/navi"/>
+    <arg name="other_marker_frame" default="ar_marker_0"/>
+    <arg name="state_topic" default="state"/>
+    <arg name="ack_info_topic" default="follower/ack"/>
+
+    <!-- Tuned values -->
+    <arg name="cache_time" default="2.0"/>
+    <arg name="target_distance" default="0.155"/>
+    <arg name="duration" default="2.0"/>
+    <arg name="Krho" default="0.7"/>
+    <arg name="Kalpha" default="0.9"/>
+    <arg name="Kbeta" default="-0.15"/>
+
+    <node name="follower" pkg="move_turtlebot" type="make_turtlebot_follower.py">
+        <param name="follower_motor_cmds" value="$(arg follower_topic)"/>
+        <param name="name" value="$(env ROS_NAMESPACE)"/>
+        <param name="marker_frame_to_follow" value="$(arg other_marker_frame)"/>
+        <param name="other_robot_twist_topic" value="/$(env OTHER_ROS_NAMESPACE)/mobile_base/commands/velocity"/>
+
+        <param name="cache_time" value="$(arg cache_time)"/>
+        <param name="target_distance" value="$(arg target_distance)"/>
+        <param name="Krho" value="$(arg Krho)"/>
+        <param name="Kalpha" value="$(arg Kalpha)"/>
+        <param name="Kbeta" value="$(arg Kbeta)"/>
+        <param name="duration" value="$(arg duration)"/>
+
+        <param name="state_topic" value="$(arg state_topic)"/>
+        <param name="ack_info_topic" value="$(arg ack_info_topic)"/>
+    </node>
+
+</launch>
+
