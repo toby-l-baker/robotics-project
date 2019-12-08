@@ -1,52 +1,43 @@
+#!/usr/bin/env python
+import rospy 
+from turtle_bot_init import *
+import numpy as np
+from path_planner import *
+Node = "move"
 
-import rospy
-from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-import actionlib
-from actionlib_msgs.msg import *
+# master_start = (0, 0, 0)
+# master_goal = (1, 0, 0)
+# slave_start = (0.2, 1, 0)
+# slave_goal = (1, 1, 0)
+
+master_start = (0, -1.3, 0)
+master_goal = (0, 0.9, 0)
+slave_start = (1, -1.25, 0)
+slave_goal = (1, 1, 0)
 
 
-node_name = 'nav_test'
-frame_id = "map"
+min_drop_dist = 1.0
 
-def shutdown():
-	rospy.loginfo("Stop")
-
-def move(x = 0, y = 0, w = 0):
-	rospy.init_node(node_name, anonymous=False)
-	rospy.on_shutdown(shutdown)
-	#tell the action client that we want to spin a thread by default
-	move_base = actionlib.SimpleActionClient("move_base", MoveBaseAction)
-	rospy.loginfo("wait for the action server to come up")
-	#allow up to 5 seconds for the action server to come up
-	move_base.wait_for_server(rospy.Duration(5))
+def create_path(lead_follow, name):
+	# tb = Turtlebot(name)
+	path_start, path_end = path_planner(master_start, master_goal, slave_start, slave_goal, min_drop_dist)
 	
 
-	#we'll send a goal to the robot to move 3 meters forward
-	goal = MoveBaseGoal()
-	goal.target_pose.header.frame_id = frame_id
-	goal.target_pose.header.stamp = rospy.Time.now()
-	goal.target_pose.pose.position.x = x #3 meters
-	goal.target_pose.pose.position.y = y
-	goal.target_pose.pose.orientation.w = w #go forward
-	print("Goal is set up")
-	#start moving
-	move_base.send_goal(goal)
+	# print(get_path_angle(path_start, path_end))
+	# plot_path(master_start, master_goal, slave_start, slave_goal, path_start, path_end)
+	publish_path_plan(path_start, path_end)
 
-	#allow TurtleBot up to 60 seconds to complete task
-	success = move_base.wait_for_result(rospy.Duration(60)) 
+	# print(path)
 
 
-	if not success:
-                move_base.cancel_goal()
-                rospy.loginfo("The base failed to move forward 3 meters for some reason")
-    	else:
-		# We made it!
-		state = move_base.get_state()
-		if state == GoalStatus.SUCCEEDED:
-		    rospy.loginfo("Hooray, the base moved 3 meters forward")
+def main():
+	rospy.init_node(Node, anonymous=True)
+	create_path("lead", "black")
+	rospy.spin()
+	# leader or follower
+	# turtlebot color
+	# 
+
 
 if __name__ == "__main__":
-	try:
-		move(1, 0, 1)
-	except rospy.ROSInterruptException:
-		rospy.loginfo("Exception thrown")
+	main()
