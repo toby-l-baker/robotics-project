@@ -4,6 +4,8 @@ class Mechanism:
     """Controls the mechanism to deliver, level and catch packages"""
 
     def __init__(self, pinNum):
+        self.target = 0 # TODO
+
         self.dc_deliver = 6
         self.dc_level = 7.5
         self.dc_catch = 9
@@ -14,6 +16,9 @@ class Mechanism:
         self.p = GPIO.PWM(pinNum, 50)
 
         self.p.start(self.dc_level)
+
+    def step(self):
+    	pass
 
     def deliver(self):
         try:

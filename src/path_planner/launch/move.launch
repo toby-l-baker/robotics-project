@@ -1,0 +1,11 @@
+<launch>
+
+	<arg name="robot_name" default="$(env ROS_NAMESPACE)"/>
+	<arg name="type" default="Follower"/>
+
+	<node name="move" type="move" pkg="path_planner" output="screen">
+		<param name="robot_name" value="$(arg robot_name)"/>
+		<param name="type" value="$(arg type)"/>
+	</node>
+
+</launch>

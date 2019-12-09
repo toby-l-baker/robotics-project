@@ -7,14 +7,12 @@ import time
 
 Node = "path_planner"
 
-def Test():
-	print("Works prettry good")
-
 class Turtlebot:
-	def __init__(self, name, queue_size=1):
+	def __init__(self, name, type_ queue_size=1):
 		# name is all lowercase color of turtlebot
 		self.map = "/map"
 		self.name = name
+		self.type_ = type_
 		self.publish_topic = '/' + self.name + '/move_base_simple/goal'
 		self.queue_size=queue_size
 		self.publisher = rospy.Publisher(self.publish_topic, PS, queue_size=queue_size)
@@ -37,7 +35,7 @@ class Turtlebot:
 		try:
 			now = rospy.Time.now()
 			
-			self.tf.waitForTransform(self.map, self.frame, now, rospy.Duration(2.0))
+			self.tf.waitForTransform(self.map, self.frame, now, rospy.Duration(0.5))
 			# t = self.tf.getLatestCommonTime(self.frame, "/map")
 
 			pos, q = self.tf.lookupTransform(self.map, self.frame, rospy.Time())
@@ -70,21 +68,3 @@ def xytheta_to_pose(x, y, theta):
 
 
 
-
-
-# def main():
-# 	rospy.init_node(Node, anonymous=True)
-# 	black = Turtlebot('black')
-# 	green = Turtlebot('green')
-# 	print(black.x, black.y)
-# 	print(green.x, green.y)
-# 	# red.move(0, 0, 0)
-# 	# black.move(0, 0, 0)
-
-# 	# while not rospy.is_shutdown():
-# 	# 	tb.position()
-# 	# 	print(tb.x, tb.y, tb.theta)
-		
-
-# if __name__ == "__main__":
-# 	main()
