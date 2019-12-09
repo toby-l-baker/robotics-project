@@ -11,6 +11,15 @@ Node = "path_planner"
 Path_Plan_Topic = 'path_plan'
 TB_Seperation_Dist = 0.75
 
+master_start = (0, -1.3, 0)
+master_goal = (0, 0.9, 0)
+slave_start = (1, -1.25, 0)
+slave_goal = (1, 1, 0)
+
+min_drop_dist = 1.0
+
+
+
 def total_dist(x, p):
 	# All points are of form (x,y)
 	# x is a flattened list of:
@@ -112,20 +121,48 @@ def points_to_list(*pts):
 	# Flattens an arbitrary number of points (x,y) into a list
 	return [i for sub in pts for i in sub]
 
-def publish_path_plan(path_start, path_end):
+def publish_path_plan(path_start, path_end, master_start_pos, master_goal_pos, follower_start_pos, follower_end_pos):
 	# rospy.init_node(Node, anonymous=True)
 	angle = get_path_angle(path_start, path_end)
-	lead_start = path_start
-	lead_end = path_end
+	leader_start = path_start
+	leader_end = path_end
 	follower_start = offset_coords(path_start, angle)
 	follower_end = offset_coords(path_end, angle)
 	
-	msg_json_str = json.dumps({"Leader":{'Start':lead_start, 'End':lead_end}, 
-								"Follower":{'Start': follower_start, 'End': follower_end}})
+	msg_json_str = json.dumps({"Leader":{'Transfer_Start':leader_start, 'Transfer_End':leader_end, 
+								'Start':master_start_pos, 'End':master_goal_pos}, 
+								"Follower":{'Transfer_Start': follower_start, 'Transfer_End': follower_end, 
+								'Start': follower_start_pos, 'End': follower_end_pos}
+	})
 	pub = rospy.Publisher(Path_Plan_Topic, String, queue_size=1, latch=True)
-	pub.publish('Test')
-	rospy.spin()
+	pub.publish(msg_json_str)
 
 	print("JSON message published.")
 
-	
+def toFloat(str_list):
+	return str
+
+def main():
+	rospy.init_node(Node, anonymous=True)
+
+	master_start_pos = [float(item) for item in rospy.get_param("~master_start_pos").split(' ')]
+	master_goal_pos = [float(item) for item in rospy.get_param("~master_goal_pos").split(' ')]
+	follower_start_pos = [float(item) for item in rospy.get_param("~follower_start_pos").split(' ')]
+	follower_goal_pos = [float(item) for item in rospy.get_param("~follower_goal_pos").split(' ')]
+
+
+
+	min_drop_dist = rospy.get_param("~min_drop_dist")
+
+
+
+
+
+	path_start, path_end = path_planner(master_start_pos, master_goal_pos, follower_start_pos, follower_goal_pos, min_drop_dist)
+	publish_path_plan(path_start, path_end, master_start_pos, master_goal_pos, follower_start_pos, follower_goal_pos)
+	rospy.spin()
+
+
+if __name__ == "__main__":
+	main()
+
