@@ -1,41 +1,6 @@
 <launch>
-    <!-- State machine node -->
-    <arg name="move_base_topic" default="move_base_cmds"/>
-    <arg name="follower_topic" default="follower_cmds"/>
-    <arg name="follower_error" default="follower_error"/>
-    <arg name="exchange_follower_topic" default="exchange_follower_cmds"/>
-    <arg name="speed_topic" default="follower_speed"/>
-
-    <node name="state_machine" pkg="move_turtlebot" type="state_machine_node.py">
-        <!-- Common topics between robots -->
-        <param name="package_sub_topic" value="/package_owner"/>
-
+    <node name="state_machine" pkg="move_turtlebot" type="state_machine_node.py" output="screen">
         <!-- Individual topics/params for each robot -->
-        <param name="motor_pub_topic" value="cmd_vel_mux/input/navi"/>
-        <param name="name" value="$(env ROS_NAMESPACE)"/>
-        <param name="my_pose_sub_topic" value="amcl_pose"/>
-        <param name="other_pose_sub_topic" value="/$(env OTHER_NAMESPACE)/amcl_pose"/>
-        <param name="move_base_sub_topic" value="$(arg move_base_topic)"/>
-        <param name="follower_sub_topic" value="$(arg follower_topic)"/>
-        <param name="exchange_follower_sub_topic" value="$(arg exchange_follower_topic)"/>
         <param name="meta_sub_topic" value="meta"/>
-        <param name="bumper_sub_topic" value="mobile_base/events/bumper"/>
-        <param name="speed_topic" value="$(arg speed_topic)"/>
-        <param name="follower_error" value="$(arg follower_error)"/>
-
-        <param name="required_proximity" value="0.155"/>
-        <param name="initial_proximity" value="1"/>
-        <param name="required_duration" value="1"/>
-        <param name="exchange_proximity" value="1"/>
-        <param name="exchange_duration" value="8"/>
-        <param name="epsilon" value="0.05"/>
     </node>
-
-    <!-- Other launch files to start -->
-    <include file="$(find move_turtlebot)/launch/advanced_follower.launch">
-        <arg name="follower_topic" value="$(arg follower_topic)"/>
-        <arg name="speed_topic" value="$(arg speed_topic)"/>
-        <arg name="error_topic" value="$(arg follower_error)"/>
-    </include>
-
 </launch>
