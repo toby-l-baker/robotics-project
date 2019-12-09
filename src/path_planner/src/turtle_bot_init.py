@@ -8,7 +8,7 @@ import time
 Node = "path_planner"
 
 class Turtlebot:
-	def __init__(self, name, type_ queue_size=1):
+	def __init__(self, name, type_, queue_size=1):
 		# name is all lowercase color of turtlebot
 		self.map = "/map"
 		self.name = name
@@ -27,6 +27,7 @@ class Turtlebot:
 		angle = 0
 		while self.x == None or self.y == None or self.theta == None:
 			self.position()
+		print("Done")
 
 	# Gets position of Turtlebot
 	def position(self):
