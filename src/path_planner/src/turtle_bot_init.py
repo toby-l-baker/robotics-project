@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 import numpy as np
-import rospy 
+import rospy
 import tf
 from geometry_msgs.msg import PoseStamped as PS
 import time
-
-Node = "path_planner"
 
 class Turtlebot:
 	def __init__(self, name, type_, queue_size=1):
@@ -25,33 +23,33 @@ class Turtlebot:
 		self.frame = '/' + self.name + '/base_link'
 
 		angle = 0
-		while self.x == None or self.y == None or self.theta == None:
-			self.position()
-		print("Done")
+		# while self.x == None or self.y == None or self.theta == None:
+		# 	self.position()
+		# print("Done")
 
 	# Gets position of Turtlebot
-	def position(self):
-		# Pose published on "amcl_pose"
-		# TODO: make this a callback
-		try:
-			now = rospy.Time.now()
-			
-			self.tf.waitForTransform(self.map, self.frame, now, rospy.Duration(0.5))
-			# t = self.tf.getLatestCommonTime(self.frame, "/map")
-
-			pos, q = self.tf.lookupTransform(self.map, self.frame, rospy.Time())
-			
-			self.x = pos[0]
-			self.y = pos[1]
-			euler = tf.transformations.euler_from_quaternion(q)
-			self.theta = euler[2]
-		except Exception as e:
-			print(e)
+	# def position(self):
+	# 	# Pose published on "amcl_pose"
+	# 	# TODO: make this a callback
+	# 	try:
+	# 		now = rospy.Time.now()
+	#
+	# 		self.tf.waitForTransform(self.map, self.frame, now, rospy.Duration(0.5))
+	# 		# t = self.tf.getLatestCommonTime(self.frame, "/map")
+	#
+	# 		pos, q = self.tf.lookupTransform(self.map, self.frame, rospy.Time())
+	#
+	# 		self.x = pos[0]
+	# 		self.y = pos[1]
+	# 		euler = tf.transformations.euler_from_quaternion(q)
+	# 		self.theta = euler[2]
+	# 	except Exception as e:
+	# 		print(e)
 	# Moves turtlebot to given x,y position with heading theta
 	def move(self, x, y, theta):
 		pose = xytheta_to_pose(x, y, theta)
 		self.publisher.publish(pose)
-		
+
 
 # Turns an x, y, theta coordinate into a pose
 def xytheta_to_pose(x, y, theta):
@@ -66,6 +64,3 @@ def xytheta_to_pose(x, y, theta):
 	pose.pose.orientation.z = quaternion[2]
 	pose.pose.orientation.w = quaternion[3]
 	return pose
-
-
-
