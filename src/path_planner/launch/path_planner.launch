@@ -4,6 +4,9 @@
 	<arg name="follower_start_pos" default="-1 0 0"/>
 	<arg name="follower_goal_pos" default="0 -2 0"/>
 	<arg name="min_drop_dist" default="1.0"/>
+	<arg name="tb_separation" default="0.75">
+	<arg name="path_topic" default="path_plan">
+
 
 	<node name="path_planner" type="path_planner.py" pkg="path_planner">
 		<param name="master_start_pos" value="$(arg master_start_pos)"/>
@@ -11,5 +14,7 @@
 		<param name="follower_start_pos" value="$(arg follower_start_pos)"/>
 		<param name="follower_goal_pos" value="$(arg follower_goal_pos)"/>
 		<param name="min_drop_dist" value="$(arg min_drop_dist)"/>
+		<param name="tb_separation" value="$(arg tb_separation)"/>
+		<param name="path_topic" value="$(arg path_topic)"/>
 	</node>
 </launch>
