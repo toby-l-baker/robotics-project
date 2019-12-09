@@ -34,6 +34,7 @@ class TurtlebotFollower:
         self.camera_frame = self.turtlebot_name + "/camera_rgb_frame"
         """ Initialize the mechanism """
         self.init_mechanism(rospy.get_param("~pin_num"))
+        self.tag_upside_down = rospy.get_param("~upside_down")
 
         """Setup more state"""
         self.i = 0
@@ -123,10 +124,10 @@ class TurtlebotFollower:
             self.ack_info_pub.publish(res)
 
     def run(self, event):
+        error = self.update_velocity(self.enabled)
         if not self.enabled:
             return
 
-        error = self.update_velocity()
         if error < 0:
             """Skip negative returns - indicates error with tf"""
             return
@@ -142,7 +143,7 @@ class TurtlebotFollower:
             else:
                 self.ack_info_pub.publish("EXCHANGE")
 
-    def update_velocity(self):
+    def update_velocity(self, enabled):
         """Compute cmd_vel messages and publish"""
         try:
             latest_time = self.transformer.getLatestCommonTime(self.turtlebot_frame, self.marker_frame)
@@ -152,15 +153,20 @@ class TurtlebotFollower:
                 """Publish default speed"""
                 command = Twist()
                 command.linear.x = 0.0
-                self.cmd_vel_pub.publish(command)
                 print("Out of date transform by {} seconds".format(current_time.secs - latest_time.secs))
+                if enabled:
+                    self.cmd_vel_pub.publish(command)
                 return -1
 
             trans, rot = self.transformer.lookupTransform(self.turtlebot_frame,
                                                           self.marker_frame,
                                                           rospy.Time())
+
             theta = -(tft.euler_from_quaternion(rot)[2] + np.pi / 2.0)
             x, y = trans[0], trans[1]
+            if self.tag_upside_down:
+                theta = theta + np.pi
+
             x_goal = x - self.target_distance * np.cos(theta)
             y_goal = y - self.target_distance * np.sin(theta)
 
@@ -195,13 +201,15 @@ class TurtlebotFollower:
             twist = Twist()
             twist.linear.x = max(min(velocity, self.x_vel_max), -self.x_vel_max)
             twist.angular.z = max(min(omega, self.z_ang_max), -self.z_ang_max)
-            self.cmd_vel_pub.publish(twist)
+            if enabled:
+                self.cmd_vel_pub.publish(twist)
 
             return x_goal
 
         except tf.Exception as e:
             """Tells robot to stop"""
-            self.cmd_vel_pub.publish(Twist())
+            if enabled():
+                self.cmd_vel_pub.publish(Twist())
             print("Exception occurred:", e)
 
             return -1

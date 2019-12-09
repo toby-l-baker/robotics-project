@@ -12,6 +12,8 @@
     <arg name="Kalpha" default="0.9"/>
     <arg name="Kbeta" default="-0.15"/>
 
+    <arg name="upside_down" default="True"/>
+
     <node name="follower" pkg="move_turtlebot" type="make_turtlebot_follower.py">
         <param name="follower_motor_cmds" value="$(arg follower_topic)"/>
         <param name="name" value="$(env ROS_NAMESPACE)"/>
@@ -26,6 +28,7 @@
         <param name="duration" value="$(arg duration)"/>
 
         <param name="pin_num" value="7"/>
+        <param name="upside_down" value="$(arg upside_down)"/>"
 
         <param name="state_topic" value="$(arg state_topic)"/>
         <param name="ack_info_topic" value="$(arg ack_info_topic)"/>
