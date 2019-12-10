@@ -14,14 +14,18 @@ class TB_Move:
 		self.name = name
 		self.type_ = type_
 		self.tb = Turtlebot(name, type_)
+		self.last_done = False
 		rospy.Subscriber("path_plan", NavigationTargets, self.path_plan_cb)
 		rospy.Subscriber("move_base/status", GoalStatusArray, self.move_base_status_cb)
 
 		# Subscribes to state changes of State Machine
-		rospy.Subscriber('state', String, state_change_callback)
+		rospy.Subscriber('/state', String, state_change_callback)
+		self.initial_ack = rospy.Publisher('Initial_ack', String, queue_size=1)
+        self.follow_ack = rospy.Publisher('Follow_ack', String, queue_size=1)
+        self.final_ack = rospy.Publisher('Final_ack', String, queue_size=1)
 
 		# Publishes ready check to State Machine
-		ready_pub = rospy.Publisher('node_ready', String, queue_size=1)
+		ready_pub = rospy.Publisher('/node_ready', String, queue_size=1)
 		if self.type_ == 'Leader':
 		# Sets Leader_move ready
 			ready_pub.publish("LEADER")
@@ -33,6 +37,7 @@ class TB_Move:
 		print(msg)
 		for i in msg.status_list:
 			if i.goal_id.status == GoalStatus.SUCCEEDED:
+				self.last_done = True
 				print("Woot")
 		#if msg.status_list[0].goal_id.status == GoalStatus.SUCCEEDED:
 		#	print("WOOT")
@@ -72,12 +77,25 @@ class TB_Move:
 		elif(msg.data == state_names.INITIAL):
 			print("In initial state")
 			self.move_transfer_start()
+			while(self.last_done == False):
+				pass
+			initial_ack.publish("DONE " + self.name)
+			self.last_done = False
 		elif(msg.data[0:6] == state_names.FOLLOW):
 			print("In follow state")
 			self.move_transfer_end()
+			while(self.last_done == False):
+				pass
+			follow_ack.publish("DONE " + self.name)
+			self.last_done = False
 		elif(msg.data == state_names.FINAL):
 			print("In final state")
 			self.move_end()
+			while(self.last_done == False):
+				pass
+			final_ack.publish("DONE " + self.name)
+			self.last_done = False
+
 
 # def create_path(lead_follow, name):
 # 	red = Turtlebot("red")
