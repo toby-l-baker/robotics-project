@@ -61,13 +61,13 @@ class TurtlebotFollower:
         # Publishers
         """Setup cmd_vel_mux publisher"""
         cmd_vel_topic = rospy.get_param("~follower_motor_cmds")
-        self.cmd_vel_pub = rospy.Publisher(cmd_vel_topic, Twist, queue_size=1)
+        self.cmd_vel_pub = rospy.Publisher(cmd_vel_topic, Twist, queue_size=1, latch=True)
 
         """ack info topic publisher"""
         ack_info_topic = rospy.get_param("~ack_info_topic")
-        self.ack_info_pub = rospy.Publisher(ack_info_topic, String, queue_size=1)
+        self.ack_info_pub = rospy.Publisher(ack_info_topic, String, queue_size=1, latch=True)
 
-        self.ready_pub = rospy.Publisher('node_ready', String, queue_size=1)
+        self.ready_pub = rospy.Publisher('node_ready', String, queue_size=1, latch=True)
 
         # Subscribers
         """State topic subscriber"""

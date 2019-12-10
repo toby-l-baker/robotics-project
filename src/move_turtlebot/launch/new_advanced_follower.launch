@@ -1,7 +1,7 @@
 <launch>
     <arg name="follower_topic" default="cmd_vel_mux/input/navi"/>
     <arg name="other_marker_frame" default="ar_marker_0"/>
-    <arg name="state_topic" default="state"/>
+    <arg name="state_topic" default="/state"/>
     <arg name="ack_info_topic" default="follower/ack"/>
 
     <!-- Tuned values -->
