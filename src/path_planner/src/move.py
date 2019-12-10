@@ -1,25 +1,13 @@
 #!/usr/bin/env python
 import rospy
 from turtle_bot_init import *
+# How to import from diff folder?
+# import state_names
 import numpy as np
 from std_msgs.msg import String
 import json
 from path_planner.msg import NavigationTargets
 from actionlib_msgs.msg import GoalStatusArray, GoalStatus
-
-# master_start = (0, 0, 0)
-# master_goal = (1, 0, 0)
-# # slave_start = (0.2, 1, 0)
-# # slave_goal = (1, 1, 0)
-
-# master_start = (0, -1.3, 0)
-# master_goal = (0, 0.9, 0)
-# slave_start = (1, -1.25, 0)
-# slave_goal = (1, 1, 0)
-
-
-# min_drop_dist = 1.0
-
 
 class TB_Move:
 	def __init__(self, name, type_):
@@ -29,8 +17,17 @@ class TB_Move:
 		rospy.Subscriber("path_plan", NavigationTargets, self.path_plan_cb)
 		rospy.Subscriber("move_base/status", GoalStatusArray, self.move_base_status_cb)
 
-	def start(self):
-		self.tb.move()
+		# Subscribes to state changes of State Machine
+		rospy.Subscriber('state', String, state_change_callback)
+
+		# Publishes ready check to State Machine
+		ready_pub = rospy.Publisher('node_ready', String, queue_size=1)
+		if self.type_ == 'Leader':
+		# Sets Leader_move ready
+			ready_pub.publish("LEADER")
+		elif self.type_ == 'Follower':
+			# Sents follower_move ready
+			ready_pub.publish("FOLLOWER")
 
 	def move_base_status_cb(self, msg):
 		print(msg)
@@ -46,27 +43,41 @@ class TB_Move:
 		# TODO check if move_base is finished
 		return True
 
-	# def path_plan_cb(self, plan_json):
-	# 	path_plan = json.loads(plan_json.data)
-	# 	self.start_pos = path_plan[self.tb.type_]['Start']
-	# 	self.end_pos = path_plan[self.tb.type_]['End']
-	# 	self.transfer_start_pos = path_plan[self.tb.type_]['Transfer_Start']
-	# 	self.transfer_end_pos = path_plan[self.tb.type_]['Transfer_End']
-	# 	self.tb.move(*self.transfer_start_pos)
 	def path_plan_cb(self, data):
+		# Gets path plan from path_planner node
 		if self.type_ == "Follower":
 			self.start_pos = data.follower.initial
 			self.end_pos = data.follower.goal
 			self.transfer_start_pos = data.follower.line_start
-			self.transfer_end_pos = data.follower.line_start
+			self.transfer_end_pos = data.follower.line_end
 		elif self.type_ == "Leader":
 			self.start_pos = data.leader.initial
 			self.end_pos = data.leader.goal
 			self.transfer_start_pos = data.leader.line_start
-			self.transfer_end_pos = data.leader.line_start
+			self.transfer_end_pos = data.leader.line_end
+		# self.tb.move(*self.transfer_start_pos)
+	def move_transfer_start(self):
+		# moves to start of transfer 
 		self.tb.move(*self.transfer_start_pos)
-
-
+	def move_transfer_end(self):
+		# moves to end of transfer. Note if 
+		if(self.type_ == "Leader"):
+			self.tb.move(*self.transfer_end_pos)
+	def move_end(self):
+		# moves to final goal
+		self.tb.move(*self.end_pos)
+	def state_change_callback(self, msg):
+		if(msg.data == state_names.IDLE):
+			print("In idle state")
+		elif(msg.data == state_names.INITIAL):
+			print("In initial state")
+			self.move_transfer_start()
+		elif(msg.data[0:6] == state_names.FOLLOW):
+			print("In follow state")
+			self.move_transfer_end()
+		elif(msg.data == state_names.FINAL):
+			print("In final state")
+			self.move_end()
 
 # def create_path(lead_follow, name):
 # 	red = Turtlebot("red")
@@ -80,10 +91,6 @@ class TB_Move:
 # 	publish_path_plan(path_start, path_end)
 
 	# print(path)
-
-# def move(data):
-
-
 # def ghetto_tb_move_test(lead, follower, path_start, path_end):
 # 	lead_start = path_start
 # 	lead_end = path_end
@@ -94,6 +101,8 @@ class TB_Move:
 # 	leader.move(*lead_start)
 # 	follwer.move(*follower_start)
 
+
+
 def main():
 	rospy.init_node("move", anonymous=True)
 
@@ -101,10 +110,6 @@ def main():
 	type_ = rospy.get_param("~type")
 	move = TB_Move(name, type_)
 	rospy.spin()
-	# leader or follower
-	# turtlebot color
-	#
-
 
 if __name__ == "__main__":
 	main()
