@@ -9,7 +9,7 @@
         <param name="follower_name" value= "$(arg follower_name)"/>
 
         <param name="initial_ack_topic" value="Initial_ack"/>
-        <param name="follow_ack_topic" value="Follow_ack"/>
+        <param name="follow_ack_topic" value="follower/ack"/>
         <param name="final_ack_topic" value="Final_ack"/>
         <param name="node_ready_topic" value="node_ready"/>
     </node>
