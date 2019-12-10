@@ -12,10 +12,10 @@ class StateMachine():
         ## Setup
         rospy.init_node('state_machine', anonymous=True)
         # Initializes node ready checks
-        self.path_planner_ready = False;
-        self.leader_move_ready = False;
-        self.follower_move_ready = False;
-        self.follower_follow_ready = False;
+        self.path_planner_ready = False
+        self.leader_move_ready = False
+        self.follower_move_ready = False
+        self.follower_follow_ready = False
         self.state = state_names.IDLE
         self.leader_name = rospy.get_param("~leader_name")
         self.follower_name = rospy.get_param("~follower_name")
@@ -63,7 +63,6 @@ class StateMachine():
         if msg.data == "follow":
             self.state = state_names.FOLLOW
             self.state_pub.publish(self.state + ' ' + self.follower_name)
-
         if msg.data == "final":
             self.state = state_names.FINAL
             self.state_pub.publish(self.state)
