@@ -24,12 +24,16 @@ class StateMachine():
         self.state_pub = rospy.Publisher('state', String, queue_size=1);
 
         # Subscribes to acknowledge messages from each state
-        self.initial_ack = rospy.Subscriber('Initial_ack', String, self.initial_callback)
-        self.follow_ack = rospy.Subscriber('Follow_ack', String, self.follow_callback)
-        self.final_ack = rospy.Subscriber('Final_ack', String, self.final_callback)
+        initial_ack_topic = rospy.get_param('~initial_ack')
+        follow_ack_topic = rospy.get_param('~follow_ack')
+        final_ack_topic = rospy.get_param('~final_ack')
+        self.initial_ack = rospy.Subscriber(initial_ack_topic, String, self.initial_callback)
+        self.follow_ack = rospy.Subscriber(follow_ack_topic, String, self.follow_callback)
+        self.final_ack = rospy.Subscriber(final_ack_topic, String, self.final_callback)
 
         # Subscribes to ready check from all states
-        self.ready_check = rospy.Subscriber('node_ready', String, self.ready_callback)
+        node_ready_topic = rospy.get_param('~node_ready')
+        self.ready_check = rospy.Subscriber(node_ready_topic, String, self.ready_callback)
 
         # Meta topic - misc control
         meta_sub_topic = rospy.get_param("~meta_sub_topic")
@@ -106,7 +110,3 @@ class StateMachine():
                 self.state = state_names.IDLE
                 self.state_pub.publish(self.state)
                 print("Transitioning to %s" % state_names.IDLE)
-
-
-
-

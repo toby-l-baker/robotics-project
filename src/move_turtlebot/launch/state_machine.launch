@@ -7,5 +7,10 @@
         <param name="meta_sub_topic" value="meta"/>
         <param name="leader_name" value= "$(arg leader_name)"/>
         <param name="follower_name" value= "$(arg follower_name)"/>
+
+        <param name="initial_ack_topic" value="Initial_ack"/>
+        <param name="follow_ack_topic" value="Follow_ack"/>
+        <param name="final_ack_topic" value="Final_ack"/>
+        <param name="node_ready_topic" value="node_ready"/>
     </node>
 </launch>
