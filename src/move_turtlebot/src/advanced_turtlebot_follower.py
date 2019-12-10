@@ -213,7 +213,7 @@ class TurtlebotFollower:
 
         except tf.Exception as e:
             """Tells robot to stop"""
-            if enabled():
+            if enabled:
                 self.cmd_vel_pub.publish(Twist())
             print("Exception occurred:", e)
 

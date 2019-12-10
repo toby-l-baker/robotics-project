@@ -1,0 +1,11 @@
+<launch>
+    <arg name="follower"/>
+
+    <include file="$(find move_turtlebot)/launch/new_advanced_follower.launch" if="$(arg follower)"/>
+
+    <include file="$(find path_planner)/launch/move.launch">
+        <arg name="type" value="Follower" if="$(arg follower)"/>
+        <arg name="type" value="Leader" unless="$(arg follower)"/>
+    </include>
+
+</launch>

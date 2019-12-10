@@ -28,7 +28,7 @@ Outputs the inferred pose to `/amcl_pose` topic
   </node>
 
   <!-- TF publisher for global map frame -->
-  <node name="map_publisher" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 map $(env ROS_NAMESPACE)/map 100" respawn="true" />
+  <node name="map_publisher" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 map $(env ROS_NAMESPACE)/map 25" respawn="true" />
 
   <!-- AMCL localization -->
   <arg name="custom_amcl_launch_file" default="$(find vision)/launch/amcl.launch.xml"/>
