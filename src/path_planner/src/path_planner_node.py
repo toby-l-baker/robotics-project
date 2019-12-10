@@ -100,20 +100,20 @@ def plot_path(master_start, master_goal, slave_start, slave_goal, drop_start, dr
 	plt.plot(slave_goal[0], slave_goal[1], 'ro')
 	plt.text(slave_goal[0], slave_goal[1], 'Slave Goal')
 
-	plt.plot(drop_start[0], drop_start[1], 'go')
-	plt.text(drop_start[0], drop_start[1], 'Drop Start')
+	# plt.plot(drop_start[0], drop_start[1], 'go')
+	# plt.text(drop_start[0], drop_start[1], 'Drop Start')
 
-	plt.plot(drop_end[0], drop_end[1], 'go')
-	plt.text(drop_end[0], drop_end[1], 'Drop End')
+	# plt.plot(drop_end[0], drop_end[1], 'go')
+	# plt.text(drop_end[0], drop_end[1], 'Drop End')
 
-	plt.plot([drop_start[0], drop_end[0]], [drop_start[1], drop_end[1]], 'go-')
-
+	plt.plot([drop_start[0], drop_end[0]], [drop_start[1], drop_end[1]], 'g--', label='Transfer path')
+	plt.legend()
 	plt.show()
 
-def offset_coords(point, angle):
+def offset_coords(point, angle, tb_separation):
 	# Calculates the offset for two points to seperate the turtlebots
 	# Point is a coordinate in the form (x, y, theta)
-	delta = (TB_Seperation_Dist * np.cos(angle * np.pi/180), TB_Seperation_Dist * np.sin(angle * np.pi/180), 0)
+	delta = (tb_separation * np.cos(angle * np.pi/180), tb_separation * np.sin(angle * np.pi/180), 0)
 	return np.subtract(point, delta).tolist()
 
 
@@ -185,12 +185,13 @@ class PathPlanner():
 		path_end = (ans.x[2], ans.x[3], angle)
 
 		# Generate start and end of line for both turtlebots and store in nav message
-		self.nav_targets.follower.line_start = offset_coords(path_start, angle)
-		self.nav_targets.follower.line_end = offset_coords(path_end, angle)
+		self.nav_targets.follower.line_start = offset_coords(path_start, angle, self.tb_separation)
+		self.nav_targets.follower.line_end = offset_coords(path_end, angle, self.tb_separation)
 		self.nav_targets.leader.line_start = path_start
 		self.nav_targets.leader.line_end = path_end
 
 	def publish_path_plan(self):
+		plot_path(self.master_start_pos, self.master_goal_pos, self.follower_start_pos, self.follower_goal_pos, self.nav_targets.leader.line_start, self.nav_targets.leader.line_end)
 		self.pub.publish(self.nav_targets)
 		print("Publshed Navigation Plan")
 # 
