@@ -24,6 +24,7 @@ class TB_Move:
 		rospy.Subscriber("/path_plan", NavigationTargets, self.path_plan_cb)
 		rospy.Subscriber("move_base/status", GoalStatusArray, self.move_base_status_cb)
 
+		initial_pose = rospy.Publisher("initialpose", PoseWithCovarianceStamped, queue_size=1)
 		# Subscribes to state changes of State Machine
 		rospy.Subscriber('/state', String, self.state_change_callback)
 		self.initial_ack = rospy.Publisher('Initial_ack', String, queue_size=1)
@@ -66,6 +67,9 @@ class TB_Move:
 			self.transfer_start_pos = data.leader.line_start
 			self.transfer_end_pos = data.leader.line_end
 		print("Path plan received")
+		initial_pose.publish(xytheta_to_pose(*self.start_pos))
+
+
 		# self.tb.move(*self.transfer_start_pos)
 	def move_transfer_start(self):
 		# moves to start of transfer 
