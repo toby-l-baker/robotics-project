@@ -6,6 +6,11 @@
 	<node name="move" type="move.py" pkg="path_planner" output="screen">
 		<param name="robot_name" value="$(arg robot_name)"/>
 		<param name="type" value="$(arg type)"/>
+
+        <param name="initial_ack" value="Initial_ack"/>
+        <param name="follow_ack" value="follower/ack"/>
+        <param name="final_ack" value="Final_ack"/>
+        <param name="node_ready" value="/node_ready"/>
 	</node>
 
 </launch>

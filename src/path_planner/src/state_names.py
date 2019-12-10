@@ -1,1 +1,14 @@
-/home/cc/ee106a/fa19/class/ee106a-acn/robotics-project/src/move_turtlebot/src/state_names.py
+# States
+IDLE = "Idle"
+INITIAL = "Initial"
+FOLLOW = "Follow"
+FINAL = "Final"
+
+# Follower Modes
+FOLLOW_NULL = "NULL"
+FOLLOW_ALIGN = "ALIGN"
+FOLLOW_EXCHANGE = "EXCHANGE"
+
+# Possible Messages
+DONE = "DONE"
+READY = "READY"

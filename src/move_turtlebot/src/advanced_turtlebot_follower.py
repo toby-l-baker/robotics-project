@@ -67,7 +67,8 @@ class TurtlebotFollower:
         ack_info_topic = rospy.get_param("~ack_info_topic")
         self.ack_info_pub = rospy.Publisher(ack_info_topic, String, queue_size=1, latch=True)
 
-        self.ready_pub = rospy.Publisher('node_ready', String, queue_size=1, latch=True)
+        node_ready_topic = rospy.get_param("~node_ready")
+        self.ready_pub = rospy.Publisher(node_ready_topic, String, queue_size=1, latch=True)
 
         # Subscribers
         """State topic subscriber"""
@@ -87,7 +88,7 @@ class TurtlebotFollower:
         self.timer = rospy.Timer(period, self.run, False)
 
         # Indicate node is ready
-        self.ready_pub.publish("FOLLOWER {}".format(self.turtlebot_name))
+        self.ready_pub.publish("FOLLOWER_FOLLOW {}".format(self.turtlebot_name))
 
         rospy.spin()
 

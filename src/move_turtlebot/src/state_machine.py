@@ -77,13 +77,13 @@ class StateMachine():
             self.state_pub.publish(self.state)
 
     def ready_callback(self, msg):
-        if (msg.data == "LEADER"):
+        if "LEADER" in msg.data:
             self.leader_move_ready = True
-        elif (msg.data == "FOLLOWER"):
+        elif "FOLLOWER" in msg.data:
             self.follower_move_ready = True
-        elif (msg.data == "FOLLOWER_FOLLOW"):
+        elif "FOLLOWER_FOLLOW" in msg.data:
             self.follower_follow_ready = True
-        elif (msg.data == "PATH_PLAN"):
+        elif "PATH_PLAN" in msg.data:
             self.path_planner_ready = True
 
     def initial_callback(self, msg):

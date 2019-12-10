@@ -32,6 +32,7 @@
 
         <param name="state_topic" value="$(arg state_topic)"/>
         <param name="ack_info_topic" value="$(arg ack_info_topic)"/>
+        <param name="node_ready" value="/node_ready"/>
     </node>
 
 </launch>
