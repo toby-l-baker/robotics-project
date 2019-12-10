@@ -156,6 +156,11 @@ class PathPlanner():
 		self.path_topic = rospy.get_param("~path_topic")
 		self.pub = rospy.Publisher(self.path_topic, NavigationTargets, queue_size=1, latch=True)
 
+		# Sets up to publish ready check to state machine
+		self.ready_pub = rospy.Publisher('node_ready', String, queue_size=1, latch=True)
+		self.ready_pub.publish("PATH_PLAN")
+
+
 		# Initialise message to published and setup initial and goal poses
 		self.nav_targets = NavigationTargets()
 		self.nav_targets.follower.initial = self.follower_start_pos
