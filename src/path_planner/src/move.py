@@ -23,16 +23,22 @@ from actionlib_msgs.msg import GoalStatusArray, GoalStatus
 
 class TB_Move:
 	def __init__(self, name, type_):
+		self.name = name
+		self.type_ = type_
 		self.tb = Turtlebot(name, type_)
-		rospy.Subscriber("path_plan", String, self.path_plan_cb)
-		rospy.Subsrciber("move_base/status", GoalStatusArray, self.move_base_status_cb)
+		rospy.Subscriber("path_plan", NavigationTargets, self.path_plan_cb)
+		rospy.Subscriber("move_base/status", GoalStatusArray, self.move_base_status_cb)
 
 	def start(self):
 		self.tb.move()
 
-	def move_base_status_cb(self, data):
-		if data.goal_id.status = GolaStatus.SUCCEEDED:
-			pass # do state transition
+	def move_base_status_cb(self, msg):
+		print(msg)
+		for i in msg.status_list:
+			if i.goal_id.status == GoalStatus.SUCCEEDED:
+				print("Woot")
+		#if msg.status_list[0].goal_id.status == GoalStatus.SUCCEEDED:
+		#	print("WOOT")
 		# http://docs.ros.org/api/actionlib_msgs/html/msg/GoalStatus.html
 
 
@@ -58,6 +64,8 @@ class TB_Move:
 			self.end_pos = data.leader.goal
 			self.transfer_start_pos = data.leader.line_start
 			self.transfer_end_pos = data.leader.line_start
+		self.tb.move(*self.transfer_start_pos)
+
 
 
 # def create_path(lead_follow, name):

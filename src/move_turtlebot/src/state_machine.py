@@ -61,7 +61,7 @@ class StateMachine():
             if(msg.data == state_names.DONE):
                 self.state = state_names.FOLLOW
                 self.state_pub.publish(self.state)
-                print("Transitioning to %s",state_names.FOLLOW)
+                print("Transitioning to %s" % state_names.FOLLOW)
 
     def follow_callback(self, msg):
         if(self.state != state_names.FOLLOW):
@@ -73,7 +73,7 @@ class StateMachine():
             if(msg.data == state_names.DONE):
                 self.state = state_names.FINAL
                 self.state_pub.publish(self.state)
-                print("Transitioning to %s",state_names.FINAL)
+                print("Transitioning to %s" % state_names.FINAL)
 
 
     def final_callback(self, msg):
@@ -86,7 +86,7 @@ class StateMachine():
             if(msg.data == state_names.DONE):
                 self.state = state_names.IDLE
                 self.state_pub.publish(self.state)
-                print("Transitioning to %s",state_names.IDLE)
+                print("Transitioning to %s" % state_names.IDLE)
 
 
 

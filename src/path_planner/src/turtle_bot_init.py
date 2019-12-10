@@ -49,6 +49,7 @@ class Turtlebot:
 	def move(self, x, y, theta):
 		pose = xytheta_to_pose(x, y, theta)
 		self.publisher.publish(pose)
+		print("MMMMMMMOOOOOOOOOVEEE")
 
 
 # Turns an x, y, theta coordinate into a pose

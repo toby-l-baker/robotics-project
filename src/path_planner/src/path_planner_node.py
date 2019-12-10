@@ -9,7 +9,7 @@ from std_msgs.msg import String
 from path_planner.msg import NavigationTargets
 
 # Path_Plan_Topic = 'path_plan'
-# TB_Seperation_Dist = 0.75
+TB_Seperation_Dist = 0.75
 #
 # master_start = (0, -1.3, 0)
 # master_goal = (0, 0.9, 0)
@@ -154,6 +154,7 @@ class PathPlanner():
 
 		# Get the topic to publish the plans to
 		self.path_topic = rospy.get_param("~path_topic")
+		self.pub = rospy.Publisher(self.path_topic, NavigationTargets, queue_size=1, latch=True)
 
 		# Initialise message to published and setup initial and goal poses
 		self.nav_targets = NavigationTargets()
@@ -176,17 +177,16 @@ class PathPlanner():
 
 		# Store the path start and end
 		path_start = (ans.x[0], ans.x[1], angle)
-		path_end = (and.x[2], ans.x[3], angle)
+		path_end = (ans.x[2], ans.x[3], angle)
 
 		# Generate start and end of line for both turtlebots and store in nav message
 		self.nav_targets.follower.line_start = offset_coords(path_start, angle)
-		self.nav_targets.follower.line_start = offset_coords(path_end, angle)
+		self.nav_targets.follower.line_end = offset_coords(path_end, angle)
 		self.nav_targets.leader.line_start = path_start
-		self.nav_targets.leader.line_start = path_end
+		self.nav_targets.leader.line_end = path_end
 
 	def publish_path_plan(self):
-		pub = rospy.Publisher(self.path_topic, NavigationTargets, queue_size=1, latch=True)
-		pub.publish(self.nav_targets)
+		self.pub.publish(self.nav_targets)
 		print("Publshed Navigation Plan")
 # 
 # def main():
