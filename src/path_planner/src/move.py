@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from turtle_bot_init import *
-# How to import from diff folder?
+# How to import from diff folder? TODO
 # import state_names
 import numpy as np
 from std_msgs.msg import String
@@ -26,7 +26,7 @@ class TB_Move:
 		# Sets Leader_move ready
 			ready_pub.publish("LEADER")
 		elif self.type_ == 'Follower':
-			# Sents follower_move ready
+		# Sets follower_move ready
 			ready_pub.publish("FOLLOWER")
 
 	def move_base_status_cb(self, msg):
@@ -60,7 +60,7 @@ class TB_Move:
 		# moves to start of transfer 
 		self.tb.move(*self.transfer_start_pos)
 	def move_transfer_end(self):
-		# moves to end of transfer. Note if 
+		# moves to end of transfer. Note if TB is follower, the follow node takes over.
 		if(self.type_ == "Leader"):
 			self.tb.move(*self.transfer_end_pos)
 	def move_end(self):
