@@ -87,7 +87,7 @@ class TurtlebotFollower:
         self.timer = rospy.Timer(period, self.run, False)
 
         # Indicate node is ready
-        self.ready_pub.publish("FOLLOWER")
+        self.ready_pub.publish("FOLLOWER {}".format(self.turtlebot_name))
 
         rospy.spin()
 
@@ -144,9 +144,9 @@ class TurtlebotFollower:
         if self.mode == state_names.FOLLOW_EXCHANGE:
             """Check time"""
             if rospy.Time.now() - self.exchange_start > self.duration:
-                self.ack_info_pub.publish("DONE")
+                self.ack_info_pub.publish("DONE {}".format(self.turtlebot_name))
             else:
-                self.ack_info_pub.publish("EXCHANGE")
+                self.ack_info_pub.publish("EXCHANGE {}".format(self.turtlebot_name))
 
     def update_velocity(self, enabled):
         """Compute cmd_vel messages and publish"""
