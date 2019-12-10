@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import rospy
 from turtle_bot_init import *
-# How to import from diff folder? TODO
-# import state_names
+# How to import from diff folder? 
+import sys
+# insert at 1, 0 is the script path (or '' in REPL)
+import state_names
 import numpy as np
 from std_msgs.msg import String
 import json
@@ -15,17 +17,20 @@ class TB_Move:
 		self.type_ = type_
 		self.tb = Turtlebot(name, type_)
 		self.last_done = False
-		rospy.Subscriber("path_plan", NavigationTargets, self.path_plan_cb)
+		self.start_pos = [0, 0, 0]
+		self.end_pos = [0, 0, 0]
+		self.transfer_start_pos = [0, 0, 0]
+		self.transfer_end_pos = [0, 0, 0]
+		rospy.Subscriber("/path_plan", NavigationTargets, self.path_plan_cb)
 		rospy.Subscriber("move_base/status", GoalStatusArray, self.move_base_status_cb)
 
 		# Subscribes to state changes of State Machine
-		rospy.Subscriber('/state', String, state_change_callback)
+		rospy.Subscriber('/state', String, self.state_change_callback)
 		self.initial_ack = rospy.Publisher('Initial_ack', String, queue_size=1)
-        self.follow_ack = rospy.Publisher('Follow_ack', String, queue_size=1)
-        self.final_ack = rospy.Publisher('Final_ack', String, queue_size=1)
-
+		self.follow_ack = rospy.Publisher('Follow_ack', String, queue_size=1)
+		self.final_ack = rospy.Publisher('Final_ack', String, queue_size=1)
 		# Publishes ready check to State Machine
-		ready_pub = rospy.Publisher('/node_ready', String, queue_size=1)
+		ready_pub = rospy.Publisher('/node_ready', String, queue_size=1)		
 		if self.type_ == 'Leader':
 		# Sets Leader_move ready
 			ready_pub.publish("LEADER")
@@ -36,7 +41,7 @@ class TB_Move:
 	def move_base_status_cb(self, msg):
 		print(msg)
 		for i in msg.status_list:
-			if i.goal_id.status == GoalStatus.SUCCEEDED:
+			if i.status == GoalStatus.SUCCEEDED:
 				self.last_done = True
 				print("Woot")
 		#if msg.status_list[0].goal_id.status == GoalStatus.SUCCEEDED:
@@ -60,6 +65,7 @@ class TB_Move:
 			self.end_pos = data.leader.goal
 			self.transfer_start_pos = data.leader.line_start
 			self.transfer_end_pos = data.leader.line_end
+		print("Path plan received")
 		# self.tb.move(*self.transfer_start_pos)
 	def move_transfer_start(self):
 		# moves to start of transfer 
