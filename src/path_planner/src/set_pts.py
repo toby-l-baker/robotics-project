@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 import json
+import yaml
 import rospy
 from std_msgs.msg import String
+from geometry_msgs.msg import PoseStamped as PS
+import rospkg
+
+
+
 
 
 Subscriber_Topic = "/way_points"
@@ -9,9 +15,13 @@ Subscriber_Topic = "/way_points"
 
 
 class File_Writer:
-	def __init__(self, filename = "default.json"):
-		self.file = open(filename, 'w')
-		self.subscriber = rospy.Subscriber(Subscriber_Topic, String, self.new_pt_cb) 
+	def __init__(self, filename):
+		rospack = rospkg.RosPack()
+		rospack.list() 
+		self.filename = filename
+		self.filepath = rospack.get_path('path_planner') + '/waypoints/' + filename + '.json'
+		
+		self.subscriber = rospy.Subscriber(Subscriber_Topic, PS, self.new_pt_cb) 
 		# Order of new points is: leader start, leader goal, follower start, follower goal
 		self.way_points = {
 			"leader_start": None, 
@@ -21,7 +31,7 @@ class File_Writer:
 		}
 		self.current_way_point = 0
 
-		print("\nStarting point collection.\nEnter points as 2d Pose Estimate in RVIZ in the order:")
+		print("\nStarting point collection.\nEnter points as 2d Nav Goal in RVIZ in the following order:")
 		print("\tLeader Start Postion ")
 		print("\tLeader Goal Postion ")
 		print("\tFollower Start Postion ")
@@ -29,32 +39,41 @@ class File_Writer:
 
 
 	def new_pt_cb(self, msg):
-		
-		# if not None in self.way_points.values():
-		# 	# json_msg = self.create_json()
-		# 	self.file.write(json.dumps(self.way_points))
-		# else:
-		if self.current_way_point == 0:
-			self.way_points["leader_start"] = msg
-		elif self.current_way_point == 1:
-			self.way_points["leader_goal"] = msg
-		elif self.current_way_point == 2:
-			self.way_points["follower_start"] = msg
-		elif self.current_way_point == 3:
-			self.way_points["follower_goal"] = msg
-			self.file.write(json.dumps(self.way_points))
 		self.current_way_point = self.current_way_point + 1
+		if self.current_way_point == 1:
+			self.way_points["leader_start"] = yaml.load(str(msg))
+			print("Read Leader Start Position")
+		elif self.current_way_point == 2:
+			self.way_points["leader_goal"] = yaml.load(str(msg))
+			print("Read Leader Goal Position")
+		elif self.current_way_point == 3:
+			self.way_points["follower_start"] = yaml.load(str(msg))
+			print("Read Follower Start Position")
+		elif self.current_way_point == 4:
+			self.way_points["follower_goal"] = yaml.load(str(msg))
+			print("Read Follower Goal Position")
+			self.file = open(self.filepath, 'w')
+			self.file.write(json.dumps(self.way_points, indent=4))
+			# self.file.write("Test")
+			self.file.close()
+			print(self.filename + ".json file written.\n")
+			self.current_way_point = 0
+			self.way_points = {
+				"leader_start": None, 
+				"leader_goal": None, 
+				"follower_start": None, 
+				"follower_goal": None
+			}
+
+
 def main():
 	rospy.init_node("set_pts", anonymous=True)
+	filename = rospy.get_param("~filename")
 
-	fw = File_Writer()
+	fw = File_Writer(filename)
 
-	fw.new_pt_cb(0)
-	fw.new_pt_cb(1)
-	fw.new_pt_cb(2)
-	fw.new_pt_cb(3)
 
-	# rospy.spin()
+	rospy.spin()
 
 if __name__ == "__main__":
 	main()
