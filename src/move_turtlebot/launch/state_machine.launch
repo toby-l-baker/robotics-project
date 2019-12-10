@@ -1,6 +1,11 @@
 <launch>
+    <arg name="state_topic" default="state"/>
+    <arg name="leader_name" default="black"/>
+    <arg name="follower_name" default="red"/>
     <node name="state_machine" pkg="move_turtlebot" type="state_machine_node.py" output="screen">
         <!-- Individual topics/params for each robot -->
         <param name="meta_sub_topic" value="meta"/>
+        <param name="leader_name" value= "$(arg leader_name)"/>
+        <param name="follower_name" value= "$(arg follower_name)"/>
     </node>
 </launch>
