@@ -1,0 +1,10 @@
+<launch>
+	<arg name="way_pt_config" default="default"/>
+	
+	
+	
+	<node type="rviz" name="rviz" pkg="rviz" args="-d $(find path_planner)/rviz/set_pts.rviz"/>
+
+	
+	<node name="set_pts" type="set_pts.py" pkg="path_planner" output="screen"/>
+</launch>
