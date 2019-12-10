@@ -51,6 +51,8 @@ class StateMachine():
         while(not(self.path_planner_ready and self.leader_move_ready and self.follower_move_ready and self.follower_follow_ready)):
             pass
 
+        prompt = input("PROMPT to start")
+
         # Go to INITIAL state
         self.state = state_names.INITIAL
         self.state_pub.publish(self.state)
