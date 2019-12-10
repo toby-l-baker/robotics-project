@@ -21,15 +21,20 @@ class StateMachine():
         self.follower_name = rospy.get_param("~follower_name")
 
         # Publishes state on the 'state' topic
-        self.state_pub = rospy.Publisher('state', String, queue_size=1);
+        self.state_pub = rospy.Publisher('state', String, queue_size=1, latch=True);
 
         # Subscribes to acknowledge messages from each state
         initial_ack_topic = rospy.get_param('~initial_ack')
         follow_ack_topic = rospy.get_param('~follow_ack')
         final_ack_topic = rospy.get_param('~final_ack')
-        self.initial_ack = rospy.Subscriber(initial_ack_topic, String, self.initial_callback)
-        self.follow_ack = rospy.Subscriber(follow_ack_topic, String, self.follow_callback)
-        self.final_ack = rospy.Subscriber(final_ack_topic, String, self.final_callback)
+        self.leader_initial_ack = rospy.Subscriber("/" + self.leader_name + "/" + initial_ack_topic, String, self.initial_callback)
+        self.leader_follow_ack = rospy.Subscriber("/" + self.leader_name + "/" + follow_ack_topic, String, self.follow_callback)
+        self.leader_final_ack = rospy.Subscriber("/" + self.leader_name + "/" + final_ack_topic, String, self.final_callback)
+        self.follower_initial_ack = rospy.Subscriber("/" + self.follower_name + "/" + initial_ack_topic, String, self.initial_callback)
+        self.follower_follow_ack = rospy.Subscriber("/" + self.follower_name + "/" + follow_ack_topic, String, self.follow_callback)
+        self.follower_final_ack = rospy.Subscriber("/" + self.follower_name + "/" + final_ack_topic, String, self.final_callback)
+
+        self.robot_acks = (False, False)
 
         # Subscribes to ready check from all states
         node_ready_topic = rospy.get_param('~node_ready')
@@ -72,13 +77,13 @@ class StateMachine():
             self.state_pub.publish(self.state)
 
     def ready_callback(self, msg):
-        if(msg.data == "LEADER"):
+        if (msg.data == "LEADER"):
             self.leader_move_ready = True
-        elif(msg.data == "FOLLOWER"):
+        elif (msg.data == "FOLLOWER"):
             self.follower_move_ready = True
-        elif(msg.data == "FOLLOWER_FOLLOW"):
+        elif (msg.data == "FOLLOWER_FOLLOW"):
             self.follower_follow_ready = True
-        elif(msg.data == "PATH_PLAN")
+        elif (msg.data == "PATH_PLAN"):
             self.path_planner_ready = True
 
     def initial_callback(self, msg):
@@ -86,27 +91,48 @@ class StateMachine():
             print("Not in initial state! Message was: %s" % msg.data)
         else:
             print('In Initial State, received message: %s' % msg.data)
-            if(msg.data == state_names.DONE):
-                self.state = state_names.FOLLOW
-                self.state_pub.publish(self.state + ' ' + self.follower_name) 
-                print("Transitioning to %s" % state_names.FOLLOW)
+            if state_names.DONE in msg.data:
+                if self.leader_name in msg.data:
+                    self.robot_acks = (True, self.robot_acks[1])
+                if self.follower_name in msg.data:
+                    self.robot_acks = (self.robot_acks[0], True)
+
+        if self.robot_acks[0] and self.robot_acks[1]:
+            self.state = state_names.FOLLOW
+            self.state_pub.publish(self.state + ' ' + self.follower_name) 
+            self.robot_acks = (False, False)
+            print("Transitioning to %s" % state_names.FOLLOW)
 
     def follow_callback(self, msg):
         if(self.state != state_names.FOLLOW):
             print("Not in follow state! Message was: %s" % msg.data)
         else:
             print("In Follow State, received message: %s" % msg.data)
-            if(msg.data == state_names.DONE):
-                self.state = state_names.FINAL
-                self.state_pub.publish(self.state)
-                print("Transitioning to %s" % state_names.FINAL)
+            if state_names.DONE in msg.data:
+                if self.leader_name in msg.data:
+                    self.robot_acks = (True, self.robot_acks[1])
+                if self.follower_name in msg.data:
+                    self.robot_acks = (self.robot_acks[0], True)
+
+        if self.robot_acks[0] and self.robot_acks[1]:
+            self.state = state_names.FINAL
+            self.state_pub.publish(self.state)
+            self.robot_acks = (False, False)
+            print("Transitioning to %s" % state_names.FINAL)
 
     def final_callback(self, msg):
         if(self.state != state_names.FINAL):
             print("Not in final state! Message was: %s" % msg.data)
         else:
             print("In Final State, received message: %s" % msg.data)
-            if(msg.data == state_names.DONE):
-                self.state = state_names.IDLE
-                self.state_pub.publish(self.state)
-                print("Transitioning to %s" % state_names.IDLE)
+            if state_names.DONE in msg.data:
+                if self.leader_name in msg.data:
+                    self.robot_acks = (True, self.robot_acks[1])
+                if self.follower_name in msg.data:
+                    self.robot_acks = (self.robot_acks[0], True)
+
+        if self.robot_acks[0] and self.robot_acks[1]:
+            self.state = state_names.IDLE
+            self.state_pub.publish(self.state)
+            self.robot_acks = (False, False)
+            print("Transitioning to %s" % state_names.IDLE)
