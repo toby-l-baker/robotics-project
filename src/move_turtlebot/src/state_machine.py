@@ -11,6 +11,15 @@ class StateMachine():
     def __init__(self):
         ## Setup
         rospy.init_node('state_machine', anonymous=True)
+        # Initializes node ready checks
+        self.path_planner_ready = False;
+        self.leader_move_ready = False;
+        self.follower_move_ready = False;
+        self.follower_follow_ready = False;
+        self.state = state_names.IDLE
+        self.leader_name = rospy.get_param("~leader_name")
+        self.follower_name = rospy.get_param("~follower_name")
+
         # Publishes state on the 'state' topic
         self.state_pub = rospy.Publisher('state', String, queue_size=1);
 
@@ -18,22 +27,13 @@ class StateMachine():
         self.initial_ack = rospy.Subscriber('Initial_ack', String, self.initial_callback)
         self.follow_ack = rospy.Subscriber('Follow_ack', String, self.follow_callback)
         self.final_ack = rospy.Subscriber('Final_ack', String, self.final_callback)
+
+        # Subscribes to ready check from all states
+        self.ready_check = rospy.Subscriber('node_ready', String, self.ready_callback)
+
         # Meta topic - misc control
         meta_sub_topic = rospy.get_param("~meta_sub_topic")
         self.meta_sub = rospy.Subscriber(meta_sub_topic, String, self.meta_callback)
-
-
-        self.leader_name = rospy.get_param("~leader_name")
-        self.follower_name = rospy.get_param("~follower_name")
-
-        # Initializes node ready checks
-        self.path_planner_ready = False;
-        self.leader_move_ready = False;
-        self.follower_move_ready = False;
-        self.follower_follow_ready = False;
-
-        self.state = state_names.IDLE
-        
         ##State Machine begin
 
         # Publish IDLE state
@@ -68,11 +68,19 @@ class StateMachine():
             self.state = state_names.FINAL
             self.state_pub.publish(self.state)
 
+    def ready_callback(self, msg):
+        if(msg.data == "LEADER"):
+            self.leader_move_ready
+        elif(msg.data == "FOLLOWER"):
+            self.follower_move_ready
+        elif(msg.data == "FOLLOWER_FOLLOW"):
+            self.follower_follow_ready
+        elif(msg.data == "PATH_PLAN")
+            self.path_planner_ready
+
     def initial_callback(self, msg):
         if(self.state != state_names.INITIAL):
             print("Not in initial state! Message was: %s" % msg.data)
-            if(msg.data == state_names.READY):
-                self.initial_ready = True
         else:
             print('In Initial State, received message: %s' % msg.data)
             if(msg.data == state_names.DONE):
@@ -83,8 +91,6 @@ class StateMachine():
     def follow_callback(self, msg):
         if(self.state != state_names.FOLLOW):
             print("Not in follow state! Message was: %s" % msg.data)
-            if(msg.data == state_names.READY):
-                self.follow_ready = True
         else:
             print("In Follow State, received message: %s" % msg.data)
             if(msg.data == state_names.DONE):
@@ -92,12 +98,9 @@ class StateMachine():
                 self.state_pub.publish(self.state)
                 print("Transitioning to %s" % state_names.FINAL)
 
-
     def final_callback(self, msg):
         if(self.state != state_names.FINAL):
             print("Not in final state! Message was: %s" % msg.data)
-            if(msg.data == state_names.READY):
-                self.final_ready = True
         else:
             print("In Final State, received message: %s" % msg.data)
             if(msg.data == state_names.DONE):
