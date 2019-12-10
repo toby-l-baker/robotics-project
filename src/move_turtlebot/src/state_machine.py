@@ -73,13 +73,13 @@ class StateMachine():
 
     def ready_callback(self, msg):
         if(msg.data == "LEADER"):
-            self.leader_move_ready
+            self.leader_move_ready = True
         elif(msg.data == "FOLLOWER"):
-            self.follower_move_ready
+            self.follower_move_ready = True
         elif(msg.data == "FOLLOWER_FOLLOW"):
-            self.follower_follow_ready
+            self.follower_follow_ready = True
         elif(msg.data == "PATH_PLAN")
-            self.path_planner_ready
+            self.path_planner_ready = True
 
     def initial_callback(self, msg):
         if(self.state != state_names.INITIAL):
