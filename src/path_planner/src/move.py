@@ -9,6 +9,7 @@ import numpy as np
 from std_msgs.msg import String
 import json
 from path_planner.msg import NavigationTargets
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from actionlib_msgs.msg import GoalStatusArray, GoalStatus
 
 class TB_Move:
@@ -21,23 +22,25 @@ class TB_Move:
 		self.end_pos = [0, 0, 0]
 		self.transfer_start_pos = [0, 0, 0]
 		self.transfer_end_pos = [0, 0, 0]
-		rospy.Subscriber("/path_plan", NavigationTargets, self.path_plan_cb)
-		rospy.Subscriber("move_base/status", GoalStatusArray, self.move_base_status_cb)
-
-		initial_pose = rospy.Publisher("initialpose", PoseWithCovarianceStamped, queue_size=1)
-		# Subscribes to state changes of State Machine
-		rospy.Subscriber('/state', String, self.state_change_callback)
 		self.initial_ack = rospy.Publisher('Initial_ack', String, queue_size=1)
 		self.follow_ack = rospy.Publisher('Follow_ack', String, queue_size=1)
 		self.final_ack = rospy.Publisher('Final_ack', String, queue_size=1)
+		self.initial_pose = rospy.Publisher("initialpose", PoseWithCovarianceStamped, queue_size=1)
+		self.ready_pub = rospy.Publisher('/node_ready', String, queue_size=1)		
+
+		rospy.Subscriber("/path_plan", NavigationTargets, self.path_plan_cb)
+		rospy.Subscriber("move_base/status", GoalStatusArray, self.move_base_status_cb)
+
+		# Subscribes to state changes of State Machine
+		rospy.Subscriber('/state', String, self.state_change_callback)
 		# Publishes ready check to State Machine
-		ready_pub = rospy.Publisher('/node_ready', String, queue_size=1)		
+
 		if self.type_ == 'Leader':
 		# Sets Leader_move ready
-			ready_pub.publish("LEADER")
+			self.ready_pub.publish("LEADER")
 		elif self.type_ == 'Follower':
 		# Sets follower_move ready
-			ready_pub.publish("FOLLOWER")
+			self.ready_pub.publish("FOLLOWER")
 
 	def move_base_status_cb(self, msg):
 		print(msg)
@@ -67,8 +70,11 @@ class TB_Move:
 			self.transfer_start_pos = data.leader.line_start
 			self.transfer_end_pos = data.leader.line_end
 		print("Path plan received")
-		initial_pose.publish(xytheta_to_pose(*self.start_pos))
-
+                pose_stamped = xytheta_to_pose(*self.start_pos)
+                msg = PoseWithCovarianceStamped()
+                msg.header = pose_stamped.header
+                msg.pose.pose = pose_stamped.pose
+		self.initial_pose.publish(msg)
 
 		# self.tb.move(*self.transfer_start_pos)
 	def move_transfer_start(self):
@@ -89,21 +95,21 @@ class TB_Move:
 			self.move_transfer_start()
 			while(self.last_done == False):
 				pass
-			initial_ack.publish("DONE " + self.name)
+			self.initial_ack.publish("DONE " + self.name)
 			self.last_done = False
 		elif(msg.data[0:6] == state_names.FOLLOW):
 			print("In follow state")
 			self.move_transfer_end()
 			while(self.last_done == False):
 				pass
-			follow_ack.publish("DONE " + self.name)
+			self.follow_ack.publish("DONE " + self.name)
 			self.last_done = False
 		elif(msg.data == state_names.FINAL):
 			print("In final state")
 			self.move_end()
 			while(self.last_done == False):
 				pass
-			final_ack.publish("DONE " + self.name)
+			self.final_ack.publish("DONE " + self.name)
 			self.last_done = False
 
 
