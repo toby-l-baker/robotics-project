@@ -1,0 +1,11 @@
+<launch>
+
+    <include file="$(find path_planner)/launch/path_planner.launch"/>
+
+    <include file="$(find move_turtlebot)/launch/state_machine.launch"/>
+
+    <include file="$(find vision)/launch/ar_tag_kinect_track.launch">
+        <arg name="robot_name" value="red"/>
+    </include>
+
+</launch>
