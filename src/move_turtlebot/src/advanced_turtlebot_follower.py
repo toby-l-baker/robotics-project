@@ -67,6 +67,8 @@ class TurtlebotFollower:
         ack_info_topic = rospy.get_param("~ack_info_topic")
         self.ack_info_pub = rospy.Publisher(ack_info_topic, String, queue_size=1)
 
+        self.ready_pub = rospy.Publisher('node_ready', String, queue_size=1)
+
         # Subscribers
         """State topic subscriber"""
         state_topic = rospy.get_param("~state_topic")
@@ -83,6 +85,9 @@ class TurtlebotFollower:
         # Timer
         period = rospy.Duration(0.05)
         self.timer = rospy.Timer(period, self.run, False)
+
+        # Indicate node is ready
+        self.ready_pub.publish("FOLLOWER {}".format(self.turtlebot_name))
 
         rospy.spin()
 
@@ -116,7 +121,7 @@ class TurtlebotFollower:
         self.Krho = rospy.get_param("~Krho")
 
     def state_callback(self, msg):
-        if msg.data == "Follow":
+        if state_names.FOLLOW in msg.data and self.turtlebot_name in msg.data:
             res = self.enable()
             self.ack_info_pub.publish(res)
         else:
@@ -139,9 +144,9 @@ class TurtlebotFollower:
         if self.mode == state_names.FOLLOW_EXCHANGE:
             """Check time"""
             if rospy.Time.now() - self.exchange_start > self.duration:
-                self.ack_info_pub.publish("DONE")
+                self.ack_info_pub.publish("DONE {}".format(self.turtlebot_name))
             else:
-                self.ack_info_pub.publish("EXCHANGE")
+                self.ack_info_pub.publish("EXCHANGE {}".format(self.turtlebot_name))
 
     def update_velocity(self, enabled):
         """Compute cmd_vel messages and publish"""
@@ -219,31 +224,3 @@ class TurtlebotFollower:
             self.target_velocity = msg.linear.x
         else:
             self.target_velocity = 0.0
-
-    def transform_pose(self, pose, starting_frame, ending_frame):
-	try:
-        	super_trans = self.tfBuffer.lookup_transform(starting_frame, ending_frame, rospy.Time())
-	except:
-		return None
-        trans = vector(super_trans.transform.translation)
-        rot = vector(super_trans.transform.rotation)
-        # generate homogenous transform
-        R = tft.quaternion_matrix(rot)
-
-        pose_q = vector(pose.orientation)
-        pose_v = vector(pose.position)
-        pose_v.append(1)
-
-        target_q = tft.quaternion_multiply(rot, pose_q)
-        target_p = (np.dot(R, np.transpose(pose_v)))[:3] + trans
-
-        target = Pose()
-        target.orientation.x = target_q[0]
-        target.orientation.y = target_q[1]
-        target.orientation.z = target_q[2]
-        target.orientation.w = target_q[3]
-        target.position.x = target_p[0]
-        target.position.y = target_p[1]
-        target.position.z = target_p[2]
-
-        return target
