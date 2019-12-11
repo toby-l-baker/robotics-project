@@ -1,5 +1,7 @@
 <launch>
 	<arg name="filename" default="default"/>
+    <arg name="follower_name" default="red"/>
+    <arg name="leader_name" default="black"/>
 	
 
 	<arg name="map_file" default="$(find vision)/maps/hall_map_post.yaml"/>
@@ -15,4 +17,10 @@
 	<node name="set_pts" type="set_pts.py" pkg="path_planner" output="screen">
 		<param name="filename" value="$(arg filename)"/>
 	</node>
+
+
+    <!-- new node -rviz util.py
+        <param name="follower_name" value="$(arg follower_name)"/>
+        <param name="leader_name" value="$(arg leader_name)"/>
+    -->
 </launch>

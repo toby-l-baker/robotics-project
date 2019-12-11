@@ -78,7 +78,7 @@ class TB_Move:
         msg = PoseWithCovarianceStamped()
         msg.header = pose_stamped.header
         msg.pose.pose = pose_stamped.pose
-        self.initial_pose.publish(msg)
+        #self.initial_pose.publish(msg)
 
     def move_transfer_start(self):
         # moves to start of transfer 
