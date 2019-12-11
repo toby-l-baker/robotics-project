@@ -2,7 +2,7 @@
 	<arg name="filename" default="default"/>
     <arg name="follower_name" default="red"/>
     <arg name="leader_name" default="black"/>
-    <arg name="gui" default="false">
+    <arg name="gui" default="false"/>
 	
 
 	<arg name="map_file" default="$(find vision)/maps/lab.yaml"/>
@@ -20,9 +20,7 @@
 		<param name="filename" value="$(arg filename)"/>
 	</node>
 
+	<include file="$(find path_planner)/launch/path_planner.launch"/>
 
-    <!-- new node -rviz util.py
-        <param name="follower_name" value="$(arg follower_name)"/>
-        <param name="leader_name" value="$(arg leader_name)"/>
-    -->
+   
 </launch>

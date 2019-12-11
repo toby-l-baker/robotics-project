@@ -14,7 +14,7 @@ import numpy as np
 
 
 Subscriber_Topic = "/way_points"
-Publisher_Topic = "/path_plan/temp"
+Publisher_Topic = "/path_plan_temp"
 
 
 class File_Reader:

@@ -55,6 +55,7 @@ class Markers:
 		# print(self.Markers)
 		
 		self.current_id = self.current_id + 1
+		print("Added text label")
 
 	def add_door_label(self, size = 1, color=ColorRGBA(1.0, 1.0, 1.0, 1.0)):
 		self.add_text_label(3.5, 1.8, 0.1, 0.0, "DOOR", size, color)
@@ -62,8 +63,8 @@ class Markers:
 		self.add_text_label(-4.0, 1.8, 0.1, 0.0, "COMPUTERS", size, color)
 	
 
-	def path_plan_cb(self, msg):
-		print(msg)
+	def path_plan_cb(self, msg, size=1,):
+		print("Inside path plan callback")
 		height = 0.25
 		lead_pts = []
 		lead_pts.append(Point(msg.leader.initial[0], msg.leader.initial[0], height))

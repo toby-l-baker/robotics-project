@@ -139,7 +139,7 @@ class PathPlanner():
 		# Get the topic to publish the plans to
 		self.path_topic = rospy.get_param("~path_topic")
 		self.pub = rospy.Publisher(self.path_topic, NavigationTargets, queue_size=1, latch=True)
-		self.sub = rospy.Subscriber(self.Subscriber_Topic, NavigationTargets, self.path_plan_cb) 
+		self.sub = rospy.Subscriber(Subscriber_Topic, NavigationTargets, self.path_plan_cb) 
 
 
 
@@ -185,7 +185,7 @@ class PathPlanner():
 		self.path_planner()
 	
 	def publish_path_plan(self):
-		plot_path(self.master_start_pos, self.master_goal_pos, self.follower_start_pos, self.follower_goal_pos, self.nav_targets.leader.line_start, self.nav_targets.leader.line_end)
+		# plot_path(self.master_start_pos, self.master_goal_pos, self.follower_start_pos, self.follower_goal_pos, self.nav_targets.leader.line_start, self.nav_targets.leader.line_end)
 		self.pub.publish(self.nav_targets)
 		print("Publshed Navigation Plan")
 
@@ -193,6 +193,7 @@ class PathPlanner():
 
 
 if __name__ == "__main__":
+	print("Inside of path planner")
 	planner = PathPlanner()
 
 
