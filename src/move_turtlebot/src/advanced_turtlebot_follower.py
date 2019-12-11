@@ -85,9 +85,11 @@ class TurtlebotFollower:
     def run_to_completion(self):
         self.enable()
         done = False
-        while not done:
+        while not rospy.is_shutdown() and not done:
             done = self.run()
             rospy.sleep(self.period)
+
+        self.disable()
         return done
 
     def init_mechanism(self, pin):
@@ -126,7 +128,7 @@ class TurtlebotFollower:
         else:
             self.disable()
 
-    def run(self, event):
+    def run(self):
         error = self.update_velocity(self.enabled)
         if not self.enabled:
             return False
