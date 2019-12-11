@@ -1,13 +1,14 @@
 #!/usr/bin/env python
-
-
 import rospy
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Quaternion, Pose, Point, Vector3, PoseStamped
 from std_msgs.msg import Header, ColorRGBA
 import tf
+from path_planner.msg import NavigationTargets
 
 Node = "rviz_util"
+Path_Topic = "/path_plan"
+
 
 
 # Turns an x, y, z, theta coordinate into a pose
@@ -27,9 +28,15 @@ def xyztheta_to_pose(x, y, z, theta):
 class Markers:
 	def __init__(self, refresh_rate = 1):
 		self.publisher = rospy.Publisher('visualization_marker_array', MarkerArray, queue_size=10)
+		self.subscriber  = rospy.Subscriber(Path_Topic, NavigationTargets, self.path_plan_cb) 
+		
 		self.Markers = MarkerArray()
 		self.current_id = 1
 		self.refresh_rate = refresh_rate
+		self.nav_targets = NavigationTargets()
+
+
+
 	def publish(self):
 		self.publisher.publish(self.Markers)
 	def add_text_label(self, x, y, z, theta, text, size=1, color=ColorRGBA(1.0, 1.0, 1.0, 1.0)):
@@ -53,10 +60,33 @@ class Markers:
 		self.add_text_label(3.5, 1.8, 0.1, 0.0, "DOOR", size, color)
 	def add_computers_label(self, size=1, color=ColorRGBA(1.0, 1.0, 1.0, 1.0)):
 		self.add_text_label(-4.0, 1.8, 0.1, 0.0, "COMPUTERS", size, color)
+	
 
-	def plot_path(pts):
-		# Points should be in the form xyz
-		print("Test")
+	def path_plan_cb(self, msg):
+		print(msg)
+		marker_1 = Marker(
+			type=Marker.TEXT_VIEW_FACING,
+			action=Marker.ADD,
+	    	id=self.current_id,
+	    	lifetime=rospy.Duration(self.refresh_rate),
+	    	pose=xyztheta_to_pose(x,y,z,theta),
+	    	scale=Vector3(size,size,size),
+	    	header=Header(frame_id='map'),
+	    	color=color,
+	    	text=text
+		)
+		marker_2 = Marker(
+			type=Marker.TEXT_VIEW_FACING,
+			action=Marker.ADD,
+	    	id=self.current_id,
+	    	lifetime=rospy.Duration(self.refresh_rate),
+	    	pose=xyztheta_to_pose(x,y,z,theta),
+	    	scale=Vector3(size,size,size),
+	    	header=Header(frame_id='map'),
+	    	color=color,
+	    	text=text
+		)
+
 
 
 def main():
