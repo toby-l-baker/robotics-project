@@ -14,7 +14,7 @@ import numpy as np
 
 
 Subscriber_Topic = "/way_points"
-Publisher_Topic = "/path_plan"
+Publisher_Topic = "/path_plan/temp"
 
 
 class File_Reader:
@@ -167,8 +167,7 @@ def main():
 	publisher = rospy.Publisher(Publisher_Topic, NavigationTargets, queue_size=10, latch=True)
 
 	filename = rospy.get_param("~filename")
-	# gui_flag = rospy.get_param("~gui")
-	gui_flag = True
+	gui_flag = rospy.get_param("~gui")
 
 	targets = None
 
