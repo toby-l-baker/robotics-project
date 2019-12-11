@@ -88,6 +88,7 @@ class TurtlebotFollower:
         while not done:
             done = self.run()
             rospy.sleep(self.period)
+        return done
 
     def init_mechanism(self, pin):
         self.mechanism = Mechanism(pin)
