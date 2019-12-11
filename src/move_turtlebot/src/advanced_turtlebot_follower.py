@@ -25,8 +25,6 @@ class TurtlebotFollower:
     Publishes to cmd_vel_mux
     """
     def __init__(self):
-        rospy.init_node('turtlebot_follower', anonymous=True)
-
         """Setup the names for the transform"""
         self.turtlebot_name = rospy.get_param("~name")
         self.turtlebot_frame = self.turtlebot_name + "/base_link"
@@ -82,10 +80,14 @@ class TurtlebotFollower:
         self.other_robot_twist_sub = rospy.Subscriber(other_robot_twist_topic, Twist, self.other_robot_twist_callback)
 
         # Timer
-        period = rospy.Duration(0.05)
-        self.timer = rospy.Timer(period, self.run, False)
+        self.period = rospy.Duration(0.05)
 
-        rospy.spin()
+    def run_to_completion(self):
+        self.enable()
+        done = False
+        while not done:
+            done = self.run()
+            rospy.sleep(self.period)
 
     def init_mechanism(self, pin):
         self.mechanism = Mechanism(pin)
@@ -126,7 +128,7 @@ class TurtlebotFollower:
     def run(self, event):
         error = self.update_velocity(self.enabled)
         if not self.enabled:
-            return
+            return False
 
         if error < 0:
             """Skip negative returns - indicates error with tf"""
@@ -136,7 +138,7 @@ class TurtlebotFollower:
             self.mode = state_names.FOLLOW_EXCHANGE_DELAY
             self.exchange_delay_start = rospy.Time.now()
 
-        if error < 0.05 and self.mode == state_names.FOLLOW_EXCHANGE_DELAY:
+        if error < 0.08 and self.mode == state_names.FOLLOW_EXCHANGE_DELAY:
             if rospy.Time.now() - self.exchange_delay_start > rospy.Duration(0.5):
                 print("Follower exchanging")
                 self.mode = state_names.FOLLOW_EXCHANGE
@@ -151,6 +153,9 @@ class TurtlebotFollower:
             print("Follower done")
             if rospy.Time.now() - self.exchange_start > self.duration:
                 self.done_pub.publish("{} DONE FOLLOWING".format(self.turtlebot_name))
+                return True
+
+        return False
 
     def update_velocity(self, enabled):
         """Compute cmd_vel messages and publish"""

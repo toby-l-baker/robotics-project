@@ -1,8 +1,8 @@
 <launch>
     <arg name="follower_topic" default="cmd_vel_mux/input/navi"/>
     <arg name="other_marker_frame" default="ar_marker_0"/>
-    <arg name="state_topic" default="/state"/>
-    <arg name="ack_info_topic" default="follower/ack"/>
+    <arg name="start_topic" default="follower/start"/>
+    <arg name="done_topic" default="follower/done"/>
 
     <!-- Tuned values -->
     <arg name="cache_time" default="2.0"/>
@@ -30,9 +30,8 @@
         <param name="pin_num" value="7"/>
         <param name="upside_down" value="$(arg upside_down)"/>"
 
-        <param name="state_topic" value="$(arg state_topic)"/>
-        <param name="ack_info_topic" value="$(arg ack_info_topic)"/>
-        <param name="node_ready" value="/node_ready"/>
+        <param name="start_topic" value="$(arg start_topic)"/>
+        <param name="done_topic" value="$(arg done_topic)"/>
     </node>
 
 </launch>
