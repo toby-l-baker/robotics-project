@@ -125,7 +125,7 @@ class TurtlebotFollower:
         else:
             self.disable()
 
-    def run(self, event):
+    def run(self):
         error = self.update_velocity(self.enabled)
         if not self.enabled:
             return False
