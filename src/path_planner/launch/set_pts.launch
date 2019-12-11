@@ -10,8 +10,6 @@
 		<param name="frame_id" value="map"/>
 	</node>
 
-
-
 	<node type="rviz" name="rviz" pkg="rviz" args="-d $(find path_planner)/rviz/set_pts.rviz" if="$(arg gui)"/>
 
 	<node name="rviz_util" type="rviz_util.py" pkg="vision" output="screen" if="$(arg gui)"/>

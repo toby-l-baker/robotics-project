@@ -100,7 +100,7 @@ def main():
 
         if "Leader" in move_tb.type_:
             '''Move turtlebot to initial post when both ready'''
-            if (move_tb.state.x == 1 and move_tb.state.y == 1) and not (move_tb.move_base_complete):
+            if (move_tb.state.x == 1 and move_tb.state.y == 1):
             	'''Move to position'''
                 move_tb.tb.move(*move_tb.transfer_start_pos)
                 '''Wait'''
@@ -108,7 +108,7 @@ def main():
                     pass
                 move_tb.timestamp_1 = rospy.Time.now()
 
-            elif (move_tb.state.x == 2 and move_tb.state.y == 2) or (move_tb.move_base_complete): # TODO setup a timer here
+            elif (move_tb.state.x == 2 and move_tb.state.y == 2): # TODO setup a timer here
             	'''Publish commended velocity for 5 seconds'''
                 move_tb.cmd_vel_pub.publish(move_tb.cmd_vel)
                 move_tb.timestamp_2 = rosp.Time.now()

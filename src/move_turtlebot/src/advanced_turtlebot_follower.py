@@ -187,7 +187,7 @@ class TurtlebotFollower:
             x_goal = x - self.target_distance * np.cos(theta)
             y_goal = y - self.target_distance * np.sin(theta)
 
-            if abs(y_goal) > 0.5 or abs(theta) > np.pi / 2.0:
+            if abs(y_goal) > 0.25 or abs(theta) > np.pi / 4.0:
                 self.cmd_vel_pub.publish(Twist())
                 return x_goal
 
