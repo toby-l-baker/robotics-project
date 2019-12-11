@@ -339,80 +339,6 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        ar_marker_0:
-          Value: true
-        black/base_footprint:
-          Value: false
-        black/base_link:
-          Value: true
-        black/camera_depth_frame:
-          Value: false
-        black/camera_depth_optical_frame:
-          Value: false
-        black/camera_link:
-          Value: false
-        black/camera_rgb_frame:
-          Value: false
-        black/camera_rgb_optical_frame:
-          Value: false
-        black/caster_back_link:
-          Value: false
-        black/caster_front_link:
-          Value: false
-        black/cliff_sensor_front_link:
-          Value: false
-        black/cliff_sensor_left_link:
-          Value: false
-        black/cliff_sensor_right_link:
-          Value: false
-        black/gyro_link:
-          Value: false
-        black/map:
-          Value: false
-        black/odom:
-          Value: false
-        black/plate_bottom_link:
-          Value: false
-        black/plate_middle_link:
-          Value: false
-        black/plate_top_link:
-          Value: false
-        black/pole_bottom_0_link:
-          Value: false
-        black/pole_bottom_1_link:
-          Value: false
-        black/pole_bottom_2_link:
-          Value: false
-        black/pole_bottom_3_link:
-          Value: false
-        black/pole_bottom_4_link:
-          Value: false
-        black/pole_bottom_5_link:
-          Value: false
-        black/pole_kinect_0_link:
-          Value: false
-        black/pole_kinect_1_link:
-          Value: false
-        black/pole_middle_0_link:
-          Value: false
-        black/pole_middle_1_link:
-          Value: false
-        black/pole_middle_2_link:
-          Value: false
-        black/pole_middle_3_link:
-          Value: false
-        black/pole_top_0_link:
-          Value: false
-        black/pole_top_1_link:
-          Value: false
-        black/pole_top_2_link:
-          Value: false
-        black/pole_top_3_link:
-          Value: false
-        black/wheel_left_link:
-          Value: false
-        black/wheel_right_link:
-          Value: false
         map:
           Value: true
         red/base_footprint:
@@ -494,73 +420,6 @@ Visualization Manager:
       Show Names: true
       Tree:
         map:
-          black/map:
-            {}
-          black/odom:
-            black/base_footprint:
-              black/base_link:
-                black/camera_rgb_frame:
-                  black/camera_depth_frame:
-                    black/camera_depth_optical_frame:
-                      {}
-                  black/camera_link:
-                    {}
-                  black/camera_rgb_optical_frame:
-                    {}
-                black/caster_back_link:
-                  {}
-                black/caster_front_link:
-                  {}
-                black/cliff_sensor_front_link:
-                  {}
-                black/cliff_sensor_left_link:
-                  {}
-                black/cliff_sensor_right_link:
-                  {}
-                black/gyro_link:
-                  {}
-                black/plate_bottom_link:
-                  {}
-                black/plate_middle_link:
-                  {}
-                black/plate_top_link:
-                  {}
-                black/pole_bottom_0_link:
-                  {}
-                black/pole_bottom_1_link:
-                  {}
-                black/pole_bottom_2_link:
-                  {}
-                black/pole_bottom_3_link:
-                  {}
-                black/pole_bottom_4_link:
-                  {}
-                black/pole_bottom_5_link:
-                  {}
-                black/pole_kinect_0_link:
-                  {}
-                black/pole_kinect_1_link:
-                  {}
-                black/pole_middle_0_link:
-                  {}
-                black/pole_middle_1_link:
-                  {}
-                black/pole_middle_2_link:
-                  {}
-                black/pole_middle_3_link:
-                  {}
-                black/pole_top_0_link:
-                  {}
-                black/pole_top_1_link:
-                  {}
-                black/pole_top_2_link:
-                  {}
-                black/pole_top_3_link:
-                  {}
-                black/wheel_left_link:
-                  {}
-                black/wheel_right_link:
-                  {}
           red/map:
             {}
           red/odom:
@@ -573,8 +432,7 @@ Visualization Manager:
                   red/camera_link:
                     {}
                   red/camera_rgb_optical_frame:
-                    ar_marker_0:
-                      {}
+                    {}
                 red/caster_back_link:
                   {}
                 red/caster_front_link:
@@ -666,7 +524,7 @@ Visualization Manager:
     - Class: rviz/FocusCamera
     - Class: rviz/Measure
     - Class: rviz/SetInitialPose
-      Topic: /red/initial_pose
+      Topic: /red/initialpose
     - Class: rviz/SetGoal
       Topic: /red/move_base_simple/goal
     - Class: rviz/PublishPoint
@@ -676,7 +534,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 10.6351681
+      Distance: 11.5395069
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -691,10 +549,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.45479655
+      Pitch: 0.844797134
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.79040384
+      Yaw: 4.89540243
     Saved: ~
 Window Geometry:
   Camera:
