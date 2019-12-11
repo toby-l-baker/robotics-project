@@ -49,7 +49,7 @@ class TurtlebotFollower:
         self.duration = rospy.Duration(rospy.get_param("~duration"))
         self.target_velocity = 0.0
         self.y_desired = 0.0
-        self.x_vel_max = 0.5
+        self.x_vel_max = 0.45
         self.z_ang_max = 1.0
 
         """Setup the tf transformer with 5 second cache time"""
@@ -85,9 +85,12 @@ class TurtlebotFollower:
     def run_to_completion(self):
         self.enable()
         done = False
-        while not done:
+        while not rospy.is_shutdown() and not done:
             done = self.run()
             rospy.sleep(self.period)
+
+        self.disable()
+        return done
 
     def init_mechanism(self, pin):
         self.mechanism = Mechanism(pin)
@@ -125,7 +128,7 @@ class TurtlebotFollower:
         else:
             self.disable()
 
-    def run(self, event):
+    def run(self):
         error = self.update_velocity(self.enabled)
         if not self.enabled:
             return False
@@ -183,6 +186,10 @@ class TurtlebotFollower:
 
             x_goal = x - self.target_distance * np.cos(theta)
             y_goal = y - self.target_distance * np.sin(theta)
+
+            if abs(y_goal) > 0.5 or abs(theta) > np.pi / 2.0:
+                self.cmd_vel_pub.publish(Twist())
+                return x_goal
 
             if x_goal < 0.0 and x_goal > -0.1:
                 # Clip x if past goal

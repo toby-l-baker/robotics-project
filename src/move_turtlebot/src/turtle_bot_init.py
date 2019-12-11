@@ -15,37 +15,10 @@ class Turtlebot:
 		self.queue_size=queue_size
 		self.publisher = rospy.Publisher(self.publish_topic, PS, queue_size=queue_size)
 
-		self.x = None
-		self.y = None
-		self.theta = None
-
 		self.tf = tf.TransformListener()
 		self.frame = '/' + self.name + '/base_link'
 
-		angle = 0
-		# while self.x == None or self.y == None or self.theta == None:
-		# 	self.position()
-		# print("Done")
-
-	# Gets position of Turtlebot
-	# def position(self):
-	# 	# Pose published on "amcl_pose"
-	# 	# TODO: make this a callback
-	# 	try:
-	# 		now = rospy.Time.now()
-	#
-	# 		self.tf.waitForTransform(self.map, self.frame, now, rospy.Duration(0.5))
-	# 		# t = self.tf.getLatestCommonTime(self.frame, "/map")
-	#
-	# 		pos, q = self.tf.lookupTransform(self.map, self.frame, rospy.Time())
-	#
-	# 		self.x = pos[0]
-	# 		self.y = pos[1]
-	# 		euler = tf.transformations.euler_from_quaternion(q)
-	# 		self.theta = euler[2]
-	# 	except Exception as e:
-	# 		print(e)
-	# Moves turtlebot to given x,y position with heading theta
+		
 	def move(self, x, y, theta):
 		pose = xytheta_to_pose(x, y, theta)
 		self.publisher.publish(pose)
