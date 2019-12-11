@@ -19,7 +19,7 @@ TB_Seperation_Dist = 0.75
 #
 # min_drop_dist = 1.0
 
-Subscriber_Topic = "/path_plan"
+Subscriber_Topic = "/path_plan_temp"
 
 
 def total_dist(x, p):
@@ -139,7 +139,7 @@ class PathPlanner():
 		# Get the topic to publish the plans to
 		self.path_topic = rospy.get_param("~path_topic")
 		self.pub = rospy.Publisher(self.path_topic, NavigationTargets, queue_size=1, latch=True)
-		self.sub = rospy.Subscriber(self.path_topic, NavigationTargets, self.path_plan_cb) 
+		self.sub = rospy.Subscriber(self.Subscriber_Topic, NavigationTargets, self.path_plan_cb) 
 
 
 
@@ -182,7 +182,7 @@ class PathPlanner():
 		self.nav_targets.leader.goal = msg.leader.goal
 		self.nav_targets.follower.initial = msg.follower.initial
 		self.nav_targets.follower.goal = msg.follower.goal
-		self.path_planner
+		self.path_planner()
 	
 	def publish_path_plan(self):
 		plot_path(self.master_start_pos, self.master_goal_pos, self.follower_start_pos, self.follower_goal_pos, self.nav_targets.leader.line_start, self.nav_targets.leader.line_end)
