@@ -4,6 +4,13 @@
     <arg name="follower"/>
 
     <include file="$(find path_planner)/launch/path_planner.launch">
+        <arg name="follower_name" value="$(arg follower)"/>
+        <arg name="leader_name" value="$(arg leader)"/>
+    </include>
+
+    <include file="$(find path_planner)/launch/set_pts.launch">
+        <arg name="follower_name" value="$(arg follower)"/>
+        <arg name="leader_name" value="$(arg leader)"/>
     </include>
 
     <include file="$(find move_turtlebot)/launch/state_machine.launch">

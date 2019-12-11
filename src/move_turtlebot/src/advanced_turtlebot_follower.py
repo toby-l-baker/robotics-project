@@ -25,8 +25,6 @@ class TurtlebotFollower:
     Publishes to cmd_vel_mux
     """
     def __init__(self):
-        rospy.init_node('turtlebot_follower', anonymous=True)
-
         """Setup the names for the transform"""
         self.turtlebot_name = rospy.get_param("~name")
         self.turtlebot_frame = self.turtlebot_name + "/base_link"
@@ -41,6 +39,7 @@ class TurtlebotFollower:
         self.enabled = False
         self.mode = state_names.FOLLOW_NULL
         self.exchange_start = None
+        self.exchange_delay_start = None
 
         """Setup scaling constants"""
         self.Kalpha = rospy.get_param("~Kalpha")
@@ -64,15 +63,13 @@ class TurtlebotFollower:
         self.cmd_vel_pub = rospy.Publisher(cmd_vel_topic, Twist, queue_size=1, latch=True)
 
         """ack info topic publisher"""
-        ack_info_topic = rospy.get_param("~ack_info_topic")
-        self.ack_info_pub = rospy.Publisher(ack_info_topic, String, queue_size=1, latch=True)
-
-        self.ready_pub = rospy.Publisher('node_ready', String, queue_size=1, latch=True)
+        done_topic = rospy.get_param("~done_topic")
+        self.done_pub = rospy.Publisher(done_topic, String, queue_size=1, latch=True)
 
         # Subscribers
-        """State topic subscriber"""
-        state_topic = rospy.get_param("~state_topic")
-        self.state_sub = rospy.Subscriber(state_topic, String, self.state_callback)
+        """start topic subscriber"""
+        start_topic = rospy.get_param("~start_topic")
+        self.start_sub = rospy.Subscriber(start_topic, String, self.start_callback)
 
         """Setup reset subscriber to tune parameters more easily"""
         reset_topic = "follower/reset"
@@ -83,13 +80,17 @@ class TurtlebotFollower:
         self.other_robot_twist_sub = rospy.Subscriber(other_robot_twist_topic, Twist, self.other_robot_twist_callback)
 
         # Timer
-        period = rospy.Duration(0.05)
-        self.timer = rospy.Timer(period, self.run, False)
+        self.period = rospy.Duration(0.05)
 
-        # Indicate node is ready
-        self.ready_pub.publish("FOLLOWER {}".format(self.turtlebot_name))
+    def run_to_completion(self):
+        self.enable()
+        done = False
+        while not rospy.is_shutdown() and not done:
+            done = self.run()
+            rospy.sleep(self.period)
 
-        rospy.spin()
+        self.disable()
+        return done
 
     def init_mechanism(self, pin):
         self.mechanism = Mechanism(pin)
@@ -120,33 +121,44 @@ class TurtlebotFollower:
         self.Kbeta = rospy.get_param("~Kbeta")
         self.Krho = rospy.get_param("~Krho")
 
-    def state_callback(self, msg):
-        if state_names.FOLLOW in msg.data and self.turtlebot_name in msg.data:
-            res = self.enable()
-            self.ack_info_pub.publish(res)
+    def start_callback(self, msg):
+        print("Follower got message {}".format(msg.data))
+        if not self.enabled:
+            self.enable()
         else:
-            res = self.disable()
-            self.ack_info_pub.publish(res)
+            self.disable()
 
-    def run(self, event):
+    def run(self):
         error = self.update_velocity(self.enabled)
         if not self.enabled:
-            return
+            return False
 
         if error < 0:
             """Skip negative returns - indicates error with tf"""
             return
         if error < 0.05 and self.mode == state_names.FOLLOW_ALIGN:
-            self.mode = state_names.FOLLOW_EXCHANGE
-            self.mechanism.deliver()
-            self.exchange_start = rospy.Time.now()
+            print("Follower close - moving to exchange delay")
+            self.mode = state_names.FOLLOW_EXCHANGE_DELAY
+            self.exchange_delay_start = rospy.Time.now()
+
+        if error < 0.08 and self.mode == state_names.FOLLOW_EXCHANGE_DELAY:
+            if rospy.Time.now() - self.exchange_delay_start > rospy.Duration(0.5):
+                print("Follower exchanging")
+                self.mode = state_names.FOLLOW_EXCHANGE
+                self.mechanism.deliver()
+                self.exchange_start = rospy.Time.now()
+        elif self.mode == state_names.FOLLOW_EXCHANGE_DELAY:
+            print("Follower going back to align")
+            self.mode = state_names.FOLLOW_ALIGN
 
         if self.mode == state_names.FOLLOW_EXCHANGE:
             """Check time"""
+            print("Follower done")
             if rospy.Time.now() - self.exchange_start > self.duration:
-                self.ack_info_pub.publish("DONE {}".format(self.turtlebot_name))
-            else:
-                self.ack_info_pub.publish("EXCHANGE {}".format(self.turtlebot_name))
+                self.done_pub.publish("{} DONE FOLLOWING".format(self.turtlebot_name))
+                return True
+
+        return False
 
     def update_velocity(self, enabled):
         """Compute cmd_vel messages and publish"""

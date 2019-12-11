@@ -16,6 +16,7 @@ class StateMachine():
         self.leader_move_ready = False
         self.follower_move_ready = False
         self.follower_follow_ready = False
+        self.human_ready = False
         self.state = state_names.IDLE
         self.leader_name = rospy.get_param("~leader_name")
         self.follower_name = rospy.get_param("~follower_name")
@@ -48,7 +49,7 @@ class StateMachine():
         # Publish IDLE state
         self.state_pub.publish(self.state)
         # Wait until all nodes are ready
-        while(not(self.path_planner_ready and self.leader_move_ready and self.follower_move_ready and self.follower_follow_ready)):
+        while(not(self.human_ready and self.path_planner_ready and self.leader_move_ready and self.follower_move_ready and self.follower_follow_ready)):
             pass
 
         # Go to INITIAL state
@@ -77,16 +78,20 @@ class StateMachine():
             self.state_pub.publish(self.state)
 
     def ready_callback(self, msg):
-        if (msg.data == "LEADER"):
+        print(msg.data)
+        if "LEADER" in msg.data:
             self.leader_move_ready = True
-        elif (msg.data == "FOLLOWER"):
+        elif "FOLLOWER" in msg.data:
             self.follower_move_ready = True
-        elif (msg.data == "FOLLOWER_FOLLOW"):
+        elif "FOLLOWER_FOLLOW" in msg.data:
             self.follower_follow_ready = True
-        elif (msg.data == "PATH_PLAN"):
+        elif "PATH_PLAN" in msg.data:
             self.path_planner_ready = True
+        elif "HUMAN" in msg.data:
+            self.human_ready = True
 
     def initial_callback(self, msg):
+        print(msg.data)
         if(self.state != state_names.INITIAL):
             print("Not in initial state! Message was: %s" % msg.data)
         else:
@@ -104,6 +109,7 @@ class StateMachine():
             print("Transitioning to %s" % state_names.FOLLOW)
 
     def follow_callback(self, msg):
+        print(msg.data)
         if(self.state != state_names.FOLLOW):
             print("Not in follow state! Message was: %s" % msg.data)
         else:
@@ -121,6 +127,7 @@ class StateMachine():
             print("Transitioning to %s" % state_names.FINAL)
 
     def final_callback(self, msg):
+        print(msg.data)
         if(self.state != state_names.FINAL):
             print("Not in final state! Message was: %s" % msg.data)
         else:

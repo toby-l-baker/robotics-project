@@ -1,4 +1,8 @@
 <launch>
+    <arg name="name" default="$(env ROS_NAMESPACE)"/>
+    <arg name="type" default="Leader"/>
+    <arg name="speed" default="0.2"/>
+
     <arg name="follower_topic" default="cmd_vel_mux/input/navi"/>
     <arg name="other_marker_frame" default="ar_marker_0"/>
     <arg name="start_topic" default="follower/start"/>
@@ -14,7 +18,11 @@
 
     <arg name="upside_down" default="True"/>
 
-    <node name="follower" pkg="move_turtlebot" type="make_turtlebot_follower.py">
+    <node name="move_tb" pkg="move_turtlebot" type="leader_follower.py">
+        <param name="name" value="$(arg name)"/>
+        <param name="type" value="$(arg type)"/>
+        <param name="speed" value="$(arg speed)"/>
+
         <param name="follower_motor_cmds" value="$(arg follower_topic)"/>
         <param name="name" value="$(env ROS_NAMESPACE)"/>
         <param name="marker_frame_to_follow" value="$(arg other_marker_frame)"/>
@@ -35,4 +43,3 @@
     </node>
 
 </launch>
-

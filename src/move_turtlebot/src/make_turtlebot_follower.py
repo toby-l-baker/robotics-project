@@ -7,4 +7,6 @@ from geometry_msgs.msg import Twist
 import argparse
 
 if __name__ == '__main__':
+    rospy.init_node('turtlebot_follower', anonymous=True)
     follower = TurtlebotFollower()
+    follower.run_to_completion()

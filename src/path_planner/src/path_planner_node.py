@@ -157,7 +157,7 @@ class PathPlanner():
 		self.pub = rospy.Publisher(self.path_topic, NavigationTargets, queue_size=1, latch=True)
 
 		# Sets up to publish ready check to state machine
-		self.ready_pub = rospy.Publisher('node_ready', String, queue_size=1, latch=True)
+		self.ready_pub = rospy.Publisher('/node_ready', String, queue_size=1, latch=True)
 		self.ready_pub.publish("PATH_PLAN")
 
 

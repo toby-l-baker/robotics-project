@@ -23,15 +23,11 @@ class TB_Move:
         self.transfer_start_pos = [0, 0, 0]
         self.transfer_end_pos = [0, 0, 0]
         self.state_initial = True
-        initial_ack_topic = rospy.get_param('~initial_ack')
-        follow_ack_topic = rospy.get_param('~follow_ack')
-        final_ack_topic = rospy.get_param('~final_ack')
-        node_ready_topic = rospy.get_param('~node_ready')
+
         self.initial_ack = rospy.Publisher(initial_ack_topic, String, queue_size=1, latch=True)
         self.follow_ack = rospy.Publisher(follow_ack_topic, String, queue_size=1, latch=True)
         self.final_ack = rospy.Publisher(final_ack_topic, String, queue_size=1, latch=True)
         self.initial_pose = rospy.Publisher("initialpose", PoseWithCovarianceStamped, queue_size=1, latch=True)
-        self.ready_pub = rospy.Publisher(node_ready_topic, String, queue_size=1, latch=True)
 
 
         rospy.Subscriber("/path_plan", NavigationTargets, self.path_plan_cb)

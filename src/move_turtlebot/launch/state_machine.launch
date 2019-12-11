@@ -11,6 +11,6 @@
         <param name="initial_ack" value="Initial_ack"/>
         <param name="follow_ack" value="follower/ack"/>
         <param name="final_ack" value="Final_ack"/>
-        <param name="node_ready" value="node_ready"/>
+        <param name="node_ready" value="/node_ready"/>
     </node>
 </launch>

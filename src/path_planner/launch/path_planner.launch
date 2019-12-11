@@ -1,11 +1,20 @@
 <launch>
-	<arg name="master_start_pos" default="0 0 0"/>
-	<arg name="master_goal_pos" default="0 2 0"/>
-	<arg name="follower_start_pos" default="-1 0 0"/>
-	<arg name="follower_goal_pos" default="0 -2 0"/>
+    <!--
+	<arg name="master_goal_pos" default="1.9 2.0 0"/>
+	<arg name="master_start_pos" default="-0.5 -0.25 0"/>
+	<arg name="follower_goal_pos" default="1.6 -0.0 0"/>
+	<arg name="follower_start_pos" default="-0.4 1.9 0"/>
+    -->
+	<arg name="master_goal_pos" default="-0.49 3.19 -90"/>
+	<arg name="master_start_pos" default="0.91 3.27 -90"/>
+	<arg name="follower_goal_pos" default="-0.17 -0.65 -90"/>
+	<arg name="follower_start_pos" default="0.89 -1.32 -90"/>
+
 	<arg name="min_drop_dist" default="1.0"/>
 	<arg name="tb_separation" default="0.75"/>
 	<arg name="path_topic" default="path_plan"/>
+
+
 
 
 	<node name="path_planner" type="path_planner_node.py" pkg="path_planner">
