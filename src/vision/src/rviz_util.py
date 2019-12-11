@@ -2,7 +2,7 @@
 
 
 import rospy
-from visualization_msgs.msg import Marker
+from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Quaternion, Pose, Point, Vector3, PoseStamped
 from std_msgs.msg import Header, ColorRGBA
 import tf
@@ -11,7 +11,7 @@ Node = "rviz_util"
 
 
 # Turns an x, y, z, theta coordinate into a pose
-def xytheta_to_pose(x, y, z, theta):
+def xyztheta_to_pose(x, y, z, theta):
 	pose = Pose()
 	pose.position.x = x
 	pose.position.y = y
@@ -24,56 +24,41 @@ def xytheta_to_pose(x, y, z, theta):
 	return pose
 
 
-def add_text_label(text, x, y, z, angle, color=ColorRGBA(1.0, 1.0, 1.0, 1.0)):
-	marker_publisher = rospy.Publisher('/visualization_marker', Marker, queue_size=10, latch=True)
-	marker = Marker(
-		type=Marker.TEXT_VIEW_FACING,
-    	# id=0,
-    	# lifetime=rospy.Duration(1.5),
-    	pose=xytheta_to_pose(x,y,z,angle),
-    	scale=Vector3(0.5, 0.5, 0.5),
-    	header=Header(frame_id='map'),
-    	color=color,
-    	text=text)
-	marker_publisher.publish(marker)
+class Markers:
+	def __init__(self):
+		self.publisher = rospy.Publisher('visualization_marker_array', MarkerArray, queue_size=10)
+		self.Markers = MarkerArray()
+		self.current_id = 1
+	def add_text_label(self, x, y, z, theta, text, size=1, color=ColorRGBA(1.0, 1.0, 1.0, 1.0)):
+		marker = Marker(
+			type=Marker.TEXT_VIEW_FACING,
+			action=Marker.ADD,
+	    	id=self.current_id,
+	    	# lifetime=rospy.Duration(1.5),
+	    	pose=xyztheta_to_pose(x,y,z,theta),
+	    	scale=Vector3(size,size,size),
+	    	header=Header(frame_id='map'),
+	    	color=color,
+	    	text=text
+		)
+		self.Markers.markers.append(marker)
+		print(self.Markers)
+		self.publisher.publish(self.Markers)
+		self.current_id = self.current_id + 1
+	def add_door_label(self, size = 1, color=ColorRGBA(1.0, 1.0, 1.0, 1.0)):
+		self.add_text_label(3.5, 1.8, 0.1, 0.0, "DOOR", size, color)
+	def add_computers_label(self, size=1, color=ColorRGBA(1.0, 1.0, 1.0, 1.0)):
+		self.add_text_label(-4.0, 1.8, 0.1, 0.0, "COMPUTERS", size, color)
 
-
-
-def add_door_label():
-	marker_publisher = rospy.Publisher('/visualization_marker', Marker, queue_size=10, latch=True)
-	marker = Marker(
-		type=Marker.TEXT_VIEW_FACING,
-		action=Marker.ADD,
-    	# id=0,
-    	# lifetime=rospy.Duration(1.5),
-    	pose=xytheta_to_pose(3.5,1.8,0.1,0),
-    	scale=Vector3(1,1,1),
-    	header=Header(frame_id='map'),
-    	color=ColorRGBA(1.0, 1.0, 1.0, 1.0),
-    	text="DOOR")
-	marker_publisher.publish(marker)
-
-def add_computers_label():
-	marker_publisher = rospy.Publisher('/visualization_marker', Marker, queue_size=10, latch=True)
-	marker = Marker(
-		type=Marker.TEXT_VIEW_FACING,
-		action=Marker.ADD,
-    	# id=0,
-    	# lifetime=rospy.Duration(1.5),
-    	pose=xytheta_to_pose(-4,1.8,0.1,0),
-    	scale=Vector3(1,1,1),
-    	header=Header(frame_id='map'),
-    	color=ColorRGBA(1.0, 1.0, 1.0, 1.0),
-    	text="COMPUTERS")
-	marker_publisher.publish(marker)
 
 
 
 def main():
 	rospy.init_node(Node)
-	# add_text_label("Testing", 0, 0, 0, 0)
-	add_door_label()
-	add_computers_label()
+	
+	markers = Markers()
+	markers.add_door_label()
+	markers.add_computers_label()
 
 	rospy.spin()
 
