@@ -64,29 +64,48 @@ class Markers:
 
 	def path_plan_cb(self, msg):
 		print(msg)
-		marker_1 = Marker(
-			type=Marker.TEXT_VIEW_FACING,
-			action=Marker.ADD,
-	    	id=self.current_id,
-	    	lifetime=rospy.Duration(self.refresh_rate),
-	    	pose=xyztheta_to_pose(x,y,z,theta),
-	    	scale=Vector3(size,size,size),
-	    	header=Header(frame_id='map'),
-	    	color=color,
-	    	text=text
-		)
-		marker_2 = Marker(
-			type=Marker.TEXT_VIEW_FACING,
-			action=Marker.ADD,
-	    	id=self.current_id,
-	    	lifetime=rospy.Duration(self.refresh_rate),
-	    	pose=xyztheta_to_pose(x,y,z,theta),
-	    	scale=Vector3(size,size,size),
-	    	header=Header(frame_id='map'),
-	    	color=color,
-	    	text=text
-		)
+		height = 0.25
+		lead_pts = []
+		lead_pts.append(Point(msg.leader.initial[0], msg.leader.initial[0], height))
+		lead_pts.append(Point(msg.leader.line_start[0], msg.leader.line_start[0], height))
+		lead_pts.append(Point(msg.leader.line_end[0], msg.leader.line_end[0], height))
+		lead_pts.append(Point(msg.leader.goal[0], msg.leader.goal[0], height))
+	
 
+		follower_pts = []
+		follower_pts.append(Point(msg.follower.initial[0], msg.follower.initial[0], height))
+		follower_pts.append(Point(msg.follower.line_start[0], msg.follower.line_start[0], height))
+		follower_pts.append(Point(msg.follower.line_end[0], msg.follower.line_end[0], height))
+		follower_pts.append(Point(msg.follower.goal[0], msg.follower.goal[0], height))	
+
+
+		lead_marker = Marker(
+			type=Marker.LINE_STRIP,
+			action=Marker.ADD,
+	    	id=self.current_id,
+	    	lifetime=rospy.Duration(self.refresh_rate),
+	    	scale=Vector3(size,size,size),
+	    	header=Header(frame_id='map'),
+	    	points = lead_pts
+	    	# color=ColorRGBA(1.0, 0.0, 0.0, 1.0)
+	    	
+		)
+		self.current_id = self.current_id + 1
+		self.Markers.markers.append(lead_marker)
+
+		follower_marker = Marker(
+			type=Marker.LINE_STRIP,
+			action=Marker.ADD,
+	    	id=self.current_id,
+	    	lifetime=rospy.Duration(self.refresh_rate),
+	    	scale=Vector3(size,size,size),
+	    	header=Header(frame_id='map'),
+	    	points = follower_pts
+	    	# color=ColorRGBA(0.0, 1.0, 0.0, 1.0)
+
+		)
+		self.current_id = self.current_id + 1
+		self.Markers.markers.append(follower_marker)
 
 
 def main():
