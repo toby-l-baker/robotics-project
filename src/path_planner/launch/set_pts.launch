@@ -2,7 +2,7 @@
 	<arg name="filename" default="default"/>
 	
 
-	<arg name="map_file" default="$(find vision)/maps/$(env TURTLEBOT_MAP_FILE)"/>
+	<arg name="map_file" default="$(find vision)/maps/robot_lab2.yaml"/>
 	<node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
 	<param name="frame_id" value="map"/>
 	</node>
