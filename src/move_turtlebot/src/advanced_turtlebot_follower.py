@@ -85,9 +85,10 @@ class TurtlebotFollower:
     def run_to_completion(self):
         self.enable()
         done = False
-        while not done:
+        while not rospy.is_shutdown() and not done:
             done = self.run()
             rospy.sleep(self.period)
+        self.disable()
 
     def init_mechanism(self, pin):
         self.mechanism = Mechanism(pin)
