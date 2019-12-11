@@ -55,11 +55,11 @@ class TB_Move:
                 self.last_done = True
                 print("Woot")
                 if "initial" in self.my_state:
-                    self.initial_ack.pub("DONE")
+                    self.initial_ack.publish("DONE")
                 elif "follow" in self.my_state:
-                    self.follow_ack.pub("DONE")
+                    self.follow_ack.publish("DONE")
                 elif "final" in self.my_state:
-                    self.final_ack.pub("DONE")
+                    self.final_ack.publish("DONE")
 
     def path_plan_cb(self, data):
         # Gets path plan from path_planner node
