@@ -62,53 +62,69 @@ class Markers:
 	def add_computers_label(self, size=1, color=ColorRGBA(1.0, 1.0, 1.0, 1.0)):
 		self.add_text_label(-4.0, 1.8, 0.1, 0.0, "COMPUTERS", size, color)
 	
+	def add_leader_plot(self, msg, height=0.25):
+		print("Adding leader.")
+		leader_marker = Marker()
+		leader_marker.id=self.current_id
+		leader_marker.action=Marker.ADD
+		leader_marker.header.frame_id = 'map'
+		leader_marker.type = Marker.LINE_STRIP
+		leader_marker.ns = "points"
+		leader_marker.scale.x = 0.25
+		leader_marker.colors = []
+
+		leader_marker.points = []
+		leader_marker.points.append(Point(msg.leader.initial[0], msg.leader.initial[1], height))
+		leader_marker.points.append(Point(msg.leader.line_start[0], msg.leader.line_start[1], height))
+		leader_marker.points.append(Point(msg.leader.line_end[0], msg.leader.line_end[1], height))
+		leader_marker.points.append(Point(msg.leader.goal[0], msg.leader.goal[1], height))
+		leader_marker.colors.append(ColorRGBA(1.0, 0.0, 0.0, 1.0))
+		leader_marker.colors.append(ColorRGBA(1.0, 0.0, 0.0, 1.0))
+		leader_marker.colors.append(ColorRGBA(1.0, 0.0, 0.0, 1.0))
+		leader_marker.colors.append(ColorRGBA(1.0, 0.0, 0.0, 1.0))
+		leader_marker.lifetime=rospy.Duration(self.refresh_rate)
+
+		self.current_id = self.current_id + 1
+		self.Markers.markers.append(leader_marker)
+
+
+	def add_follower_plot(self, msg, height=0.25):
+		print("Adding follower")
+		follower_marker = Marker()
+		follower_marker.id=self.current_id
+		follower_marker.action=Marker.ADD
+		follower_marker.header.frame_id = 'map'
+		follower_marker.type = Marker.LINE_STRIP
+		follower_marker.ns = "points"
+		follower_marker.scale.x = 0.25
+		follower_marker.colors = []
+
+		follower_marker.points = []
+		follower_marker.points.append(Point(msg.follower.initial[0], msg.follower.initial[1], height))
+		follower_marker.points.append(Point(msg.follower.line_start[0], msg.follower.line_start[1], height))
+		follower_marker.points.append(Point(msg.follower.line_end[0], msg.follower.line_end[1], height))
+		follower_marker.points.append(Point(msg.follower.goal[0], msg.follower.goal[1], height))
+		follower_marker.colors.append(ColorRGBA(0.0, 0.0, 1.0, 1.0))
+		follower_marker.colors.append(ColorRGBA(0.0, 0.0, 1.0, 1.0))
+		follower_marker.colors.append(ColorRGBA(0.0, 0.0, 1.0, 1.0))
+		follower_marker.colors.append(ColorRGBA(0.0, 0.0, 1.0, 1.0))
+		follower_marker.lifetime=rospy.Duration(self.refresh_rate)
+		self.Markers.markers.append(follower_marker)
+		self.current_id = self.current_id + 1
+
+
 
 	def path_plan_cb(self, msg, size=1,):
 		print("Inside path plan callback")
-		height = 0.25
-		lead_pts = []
-		lead_pts.append(Point(msg.leader.initial[0], msg.leader.initial[0], height))
-		lead_pts.append(Point(msg.leader.line_start[0], msg.leader.line_start[0], height))
-		lead_pts.append(Point(msg.leader.line_end[0], msg.leader.line_end[0], height))
-		lead_pts.append(Point(msg.leader.goal[0], msg.leader.goal[0], height))
-	
+		self.add_follower_plot(msg)
+		rospy.sleep(0.5)
+		self.add_leader_plot(msg)
 
-		follower_pts = []
-		follower_pts.append(Point(msg.follower.initial[0], msg.follower.initial[0], height))
-		follower_pts.append(Point(msg.follower.line_start[0], msg.follower.line_start[0], height))
-		follower_pts.append(Point(msg.follower.line_end[0], msg.follower.line_end[0], height))
-		follower_pts.append(Point(msg.follower.goal[0], msg.follower.goal[0], height))	
+		
 
 
-		lead_marker = Marker(
-			type=Marker.LINE_STRIP,
-			action=Marker.ADD,
-	    	id=self.current_id,
-	    	lifetime=rospy.Duration(self.refresh_rate),
-	    	scale=Vector3(size,size,size),
-	    	header=Header(frame_id='map'),
-	    	points = lead_pts
-	    	# color=ColorRGBA(1.0, 0.0, 0.0, 1.0)
-	    	
-		)
-		self.current_id = self.current_id + 1
-		self.Markers.markers.append(lead_marker)
 
-		follower_marker = Marker(
-			type=Marker.LINE_STRIP,
-			action=Marker.ADD,
-	    	id=self.current_id,
-	    	lifetime=rospy.Duration(self.refresh_rate),
-	    	scale=Vector3(size,size,size),
-	    	header=Header(frame_id='map'),
-	    	points = follower_pts
-	    	# color=ColorRGBA(0.0, 1.0, 0.0, 1.0)
-
-		)
-		self.current_id = self.current_id + 1
-		self.Markers.markers.append(follower_marker)
-
-
+		# print(follower_marker)
 def main():
 	rospy.init_node(Node)
 	markers = Markers()
