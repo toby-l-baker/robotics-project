@@ -196,11 +196,11 @@ class TurtlebotFollower:
                 x_goal = 0.0
             if x_goal < 0.1:
                 # Clip y if close to goal
-                if y_goal < 0.1 and y_goal > -0.1:
+                if y_goal < 0.13 and y_goal > -0.13:
                     y_goal = 0.0
 
                 # Clip theta if close to goal
-                if theta < 0.30 and theta > -0.30:
+                if theta < 0.35 and theta > -0.35:
                     theta = 0.0 
 
             # Using control algorithm from https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/move_to_pose

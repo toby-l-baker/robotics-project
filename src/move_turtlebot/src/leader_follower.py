@@ -65,6 +65,7 @@ class LeaderFollower():
             # force update
             self.state = msg
             self.state.z = 0
+            self.transfer_done = False
         # else:
         #     if "Leader" in self.type_:
         #         self.state.y = int(msg.y) # only update follower state
@@ -139,6 +140,7 @@ def main():
             	'''Move to position'''
                 print("State 1")
                 move_tb.tb.move(*move_tb.transfer_start_pos)
+                move_tb.transfer_done = False
                 '''Wait'''
                 while move_tb.state.y == 1:
                     pass
@@ -147,7 +149,9 @@ def main():
             	'''Follow the other robot until transfer done'''
                 # print("State 2")
                 if move_tb.transfer_done == False:
+                    print("State 2")
                     move_tb.transfer_done = move_tb.follower.run_to_completion()
+                    print("State 2 Done")
                 '''Update state once complete'''
                 # if move_tb.transfer_done:
                 #     move_tb.state.y+= 1

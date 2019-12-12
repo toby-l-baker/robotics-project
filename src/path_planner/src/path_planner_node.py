@@ -70,7 +70,7 @@ def dist(p, q):
 
 def get_path_angle(start, end):
 	path_vector = np.subtract(end, start)
-	return np.round(np.arctan2(path_vector[1], path_vector[0])*180.0/np.pi, 1)
+	return np.round(np.arctan2(path_vector[1], path_vector[0]), 1)
 
 # def path_planner(master_start, master_goal, slave_start, slave_goal, drop_distance):
 # 	# All locations are of the form (x,y,theta) or (x,y)
@@ -115,7 +115,7 @@ def plot_path(master_start, master_goal, slave_start, slave_goal, drop_start, dr
 def offset_coords(point, angle, tb_separation):
 	# Calculates the offset for two points to seperate the turtlebots
 	# Point is a coordinate in the form (x, y, theta)
-	delta = (tb_separation * np.cos(angle * np.pi/180), tb_separation * np.sin(angle * np.pi/180), 0)
+	delta = (tb_separation * np.cos(angle), tb_separation * np.sin(angle), 0)
 	return np.subtract(point, delta).tolist()
 
 
