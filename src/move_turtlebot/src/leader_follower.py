@@ -15,6 +15,7 @@ class LeaderFollower():
         self.type_ = rospy.get_param("~type")
         self.name = rospy.get_param("~name")
         self.speed = rospy.get_param("~speed")
+        # Only yellow red or green Turtlebots have the Raspberry Pi to use GPIO pins
         if "yellow" or "red" or "green" in self.name:
             from advanced_turtlebot_follower import TurtlebotFollower
             self.follower = TurtlebotFollower()
@@ -38,7 +39,7 @@ class LeaderFollower():
         rospy.Subscriber("/path_plan", NavigationTargets, self.path_plan_cb)
         # rospy.Subscriber("move_base/status", GoalStatusArray, self.move_base_status_cb)
 
-        # Dummy variables for plan
+        # Initial variables for plan
         self.start_pos = [0, 0, 0]
         self.end_pos = [0, 0, 0]
         self.transfer_start_pos = [0, 0, 0]
