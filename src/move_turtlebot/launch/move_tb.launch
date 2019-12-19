@@ -3,20 +3,21 @@
     <arg name="type" default="Leader"/>
     <arg name="speed" default="0.2"/>
 
+    <!-- Topic names -->
     <arg name="follower_topic" default="cmd_vel_mux/input/navi"/>
     <arg name="other_marker_frame" default="ar_marker_0"/>
     <arg name="start_topic" default="follower/start"/>
     <arg name="done_topic" default="follower/done"/>
 
-    <!-- Tuned values -->
+    <!-- Tuned controller values -->
     <arg name="cache_time" default="2.0"/>
     <arg name="target_distance" default="0.155"/>
     <arg name="duration" default="1.0"/>
     <arg name="Krho" default="0.7"/>
     <arg name="Kalpha" default="0.6"/>
     <arg name="Kbeta" default="-0.15"/>
-    <!-- defaults in order: 0.7 0.9 -0.15-->
 
+    <!-- AR Tag orientation flag -->
     <arg name="upside_down" default="True"/>
 
     <node name="move_tb" pkg="move_turtlebot" type="leader_follower.py">
@@ -36,6 +37,7 @@
         <param name="Kbeta" value="$(arg Kbeta)"/>
         <param name="duration" value="$(arg duration)"/>
 
+        <!-- Exchange mechanism servo pin number -->
         <param name="pin_num" value="7"/>
         <param name="upside_down" value="$(arg upside_down)"/>"
 
