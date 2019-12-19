@@ -5,22 +5,27 @@
     <arg name="gui" default="false"/>
 	
 
+    <!-- Publish map information for visualization -->
 	<arg name="map_file" default="$(find vision)/maps/lab.yaml"/>
 	<node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
 		<param name="frame_id" value="map"/>
 	</node>
 
+    <!-- Start RVIZ with our preset path visualization config and helper node -->
 	<node type="rviz" name="rviz" pkg="rviz" args="-d $(find path_planner)/rviz/set_pts.rviz" if="$(arg gui)"/>
-
 	<node name="rviz_util" type="rviz_util.py" pkg="vision" output="screen" if="$(arg gui)"/>
 
-	
+    <!-- Start the path planner user input system to take in points from RVIZ or a file -->
 	<node name="set_pts" type="set_pts.py" pkg="path_planner" output="screen">
 		<param name="gui" value="$(arg gui)"/>
 		<param name="filename" value="$(arg filename)"/>
 	</node>
 
+    <!-- Path planner node to compute optimal way points -->
 	<include file="$(find path_planner)/launch/path_planner.launch"/>
 
-   
+    <!-- AR Track Alvar for relative localization -->
+    <include file="$(find vision)/launch/ar_tag_kinect_track.launch">
+        <arg name="robot_name" value="$(arg follower_name)"/>
+    </include>
 </launch>
