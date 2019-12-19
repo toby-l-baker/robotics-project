@@ -32,12 +32,10 @@ class LeaderFollower():
         self.state_topic = "/state"
         self.state = Point()
         self.transfer_done = False
-        # self.state_publisher = rospy.Publisher(self.state_topic, Point, queue_size=1, latch=True)
         self.state_subscriber = rospy.Subscriber(self.state_topic, Point, self.state_callback)
 
         #Subsribe to path plan and move base
         rospy.Subscriber("/path_plan", NavigationTargets, self.path_plan_cb)
-        # rospy.Subscriber("move_base/status", GoalStatusArray, self.move_base_status_cb)
 
         # Initial variables for plan
         self.start_pos = [0, 0, 0]
@@ -48,30 +46,11 @@ class LeaderFollower():
     def get_state(self):
         return (int(self.state.x), int(self.state.y))
 
-    # def move_base_status_cb(self, msg):
-    #     # print(msg)
-    #     for i in msg.status_list:
-    #         if i.status == GoalStatus.SUCCEEDED:
-    #             if not self.move_base_complete:
-    #                 if "Leader" in self.type_:
-    #                     self.state.x += 1
-    #                 elif "Follower" in self.type_:
-    #                     self.state.y += 1
-    #                 self.state_publisher.publish(self.state)
-    #                 print("Publishing State")
-    #                 self.move_base_complete = True
-
     def state_callback(self, msg):
         if msg.z == 1:
             # force update
             self.state = msg
-            self.state.z = 0
             self.transfer_done = False
-        # else:
-        #     if "Leader" in self.type_:
-        #         self.state.y = int(msg.y) # only update follower state
-        #     elif "Follower" in self.type_:
-        #         self.state.x = int(msg.x) # only update leader state
 
     def path_plan_cb(self, data):
         # Gets path plan from path_planner node
@@ -85,16 +64,7 @@ class LeaderFollower():
             self.end_pos = data.leader.goal
             self.transfer_start_pos = data.leader.line_start
             self.transfer_end_pos = data.leader.line_end
-        # if "Leader" in self.type_:
-        #     self.state.x += 1
-        # elif "Follower" in self.type_:
-        #     self.state.y += 1
-        # self.state_publisher.publish(self.state)
         print("Path plan received")
-        # pose_stamped = xytheta_to_pose(*self.start_pos)
-        # msg = PoseWithCovarianceStamped()
-        # msg.header = pose_stamped.header
-        # msg.pose.pose = pose_stamped.pose
 
 
 def main():
@@ -114,23 +84,17 @@ def main():
                     pass
                 move_tb.timestamp_1 = rospy.Time.now()
 
-            elif (move_tb.state.x == 2 and move_tb.state.y == 2): # TODO setup a timer here
+            elif (move_tb.state.x == 2 and move_tb.state.y == 2):
                 '''Publish commended velocity for 5 seconds'''
                 move_tb.timestamp_2 = rospy.Time.now()
                 if (move_tb.timestamp_2.secs - move_tb.timestamp_1.secs) < 6.0:
                     print("Sending Commands")
                     move_tb.cmd_vel_pub.publish(move_tb.cmd_vel)
-                # print("State 2")
-                
-                # move_tb.tb.move(*move_tb.transfer_end_pos)
-                '''Wait'''
-                # while move_tb.state.x == 2:
-                #     pass
 
             elif (move_tb.state.x == 3 and move_tb.state.y == 3):
                 '''Move to final position'''
                 print("State 3")
-                move_tb.tb.move(*move_tb.end_pos) 
+                move_tb.tb.move(*move_tb.end_pos)
                 '''Wait'''
                 move_tb.move_base_complete = False
                 while move_tb.state.x == 3:
@@ -153,10 +117,6 @@ def main():
                     print("State 2")
                     move_tb.transfer_done = move_tb.follower.run_to_completion()
                     print("State 2 Done")
-                '''Update state once complete'''
-                # if move_tb.transfer_done:
-                #     move_tb.state.y+= 1
-                    # move_tb.state_publisher.publish(move_tb.state)
 
             elif (move_tb.state.x == 3 and move_tb.state.y == 3):
             	'''Moev to final position'''
@@ -165,7 +125,6 @@ def main():
                 '''Wait'''
                 while move_tb.state.y == 3:
                     pass
-
 
 if __name__ == "__main__":
     main()
